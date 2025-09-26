@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { useUser } from "../src/UserContext";
 import { RootStackParamList } from "../src/types/navigation";
+import { registerUser } from "../../services/api"; // Importa a função da API
 
 export default function RegisterScreen() {
-  const { register } = useUser();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -13,24 +12,33 @@ export default function RegisterScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password) {
+    if (!name.trim() || !email.trim() || !password.trim()) {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
     }
 
     setIsLoading(true);
 
-    try {
-      const success = await register(name, email, password);
+    const userData = {
+      name,
+      email,
+      password,
+      role: "ALUNO", // Define um papel padrão para o registo
+    };
 
-      if (success) {
+    try {
+      const response = await registerUser(userData);
+
+      if (response.userId) { // O backend retorna userId em caso de sucesso
         Alert.alert("Sucesso", "Conta criada com sucesso! Você já pode fazer login.");
-        navigation.goBack(); // ou navigation.replace("Login")
+        navigation.goBack();
       } else {
-        Alert.alert("Erro de Registro", "O email já está em uso ou ocorreu um erro.");
+        // Mostra a mensagem de erro vinda do backend (ex: email duplicado)
+        Alert.alert("Erro de Cadastro", response.message || "Ocorreu um erro ao criar a conta.");
       }
-    } catch {
-      Alert.alert("Erro", "Não foi possível criar a conta. Tente novamente.");
+    } catch (error) {
+      console.error("Falha no registo:", error);
+      Alert.alert("Erro", "Não foi possível ligar ao servidor. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +47,7 @@ export default function RegisterScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Cadastre-se</Text>
-      
+
       <TextInput
         style={styles.input}
         placeholder="Nome Completo"

@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
-import { useUser } from "../src/UserContext";
-import { RootStackParamList } from "../src/types/navigation.js";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useUser } from "../src/UserContext";
+import { RootStackParamList } from "../src/types/navigation";
+import { loginUser } from "../../services/api"; // Importa a função da API
 
 export default function LoginScreen() {
   const { login } = useUser();
@@ -13,7 +14,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
     }
@@ -21,29 +22,21 @@ export default function LoginScreen() {
     setIsLoading(true);
 
     try {
-      const user = await login(email, password);
+      const response = await loginUser({ email, password });
 
-      if (user) {
-        // Navega de acordo com o tipo de usuário
-        switch (user.role) {
-          case "Aluno":
-            navigation.replace("StudentsScreen");
-            break;
-          case "Professor":
-            navigation.replace("TeacherScreen");
-            break;
-          case "Admin":
-            navigation.replace("AdminHomeScreen");
-            break;
-          default:
-            navigation.replace("LoginScreen");
-            break;
-        }
+      if (response.token && response.user) {
+        // Se o login for bem-sucedido, chama a função do context
+        // com os dados e o token recebidos do backend.
+        // O UserContext e o App.tsx tratarão da navegação.
+        login(response.user, response.token);
+
       } else {
-        Alert.alert("Erro", "Email ou senha incorretos!");
+        // Mostra a mensagem de erro vinda do backend ou uma padrão
+        Alert.alert("Erro de Login", response.message || "Email ou senha incorretos!");
       }
     } catch (error) {
-      Alert.alert("Erro", "Ocorreu um erro inesperado. Tente novamente mais tarde.");
+      console.error("Falha no login:", error);
+      Alert.alert("Erro", "Não foi possível ligar ao servidor. Tente novamente.");
     } finally {
       setIsLoading(false);
     }

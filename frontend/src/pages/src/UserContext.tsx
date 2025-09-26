@@ -5,83 +5,66 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export type User = {
   id: string;
   email: string;
+  name: string; // Adicione o nome
   role: "Aluno" | "Professor" | "Admin" | "Financeiro";
 };
 
 type AuthContextType = {
   user: User | null;
-  login: (email: string, password: string) => Promise<User | null>;
+  token: string | null; // Adicione o estado para o token
+  login: (userData: User, token: string) => void; // A função login agora recebe os dados
   logout: () => void;
-  register: (name: string, email: string, password: string) => Promise<boolean>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: async () => null,
+  token: null,
+  login: () => {},
   logout: () => {},
-  register: async () => false,
 });
 
 type AuthProviderProps = { children: ReactNode };
 
 export const UserProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
-  const STORAGE_KEY = "@loggedUser";
+  const [token, setToken] = useState<string | null>(null);
+  const STORAGE_KEY_USER = "@loggedUser";
+  const STORAGE_KEY_TOKEN = "@authToken";
 
-  // Carrega usuário persistente ao iniciar o app
+
   useEffect(() => {
-    const loadUser = async () => {
+    const loadStoredData = async () => {
       try {
-        const storedUser = await AsyncStorage.getItem(STORAGE_KEY);
-        if (storedUser) setUser(JSON.parse(storedUser));
+        const storedUser = await AsyncStorage.getItem(STORAGE_KEY_USER);
+        const storedToken = await AsyncStorage.getItem(STORAGE_KEY_TOKEN);
+        if (storedUser && storedToken) {
+          setUser(JSON.parse(storedUser));
+          setToken(storedToken);
+        }
       } catch (error) {
-        console.log("Erro ao carregar usuário do AsyncStorage:", error);
+        console.log("Erro ao carregar dados do AsyncStorage:", error);
       }
     };
-    loadUser();
+    loadStoredData();
   }, []);
 
-  // Login simulado
-  const login = async (email: string, password: string): Promise<User | null> => {
-    let loggedInUser: User | null = null;
-
-    if (email === "professor@email.com" && password === "123") {
-      loggedInUser = { id: "1", email, role: "Professor" };
-    } else if (email === "admin@email.com" && password === "123") {
-      loggedInUser = { id: "2", email, role: "Admin" };
-    } else if (email === "aluno@email.com" && password === "123") {
-      loggedInUser = { id: "3", email, role: "Aluno" };
-    }
-
-    if (loggedInUser) {
-      setUser(loggedInUser);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(loggedInUser));
-      return loggedInUser;
-    } else {
-      setUser(null);
-      return null;
-    }
+  const login = async (userData: User, authToken: string) => {
+    setUser(userData);
+    setToken(authToken);
+    await AsyncStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
+    await AsyncStorage.setItem(STORAGE_KEY_TOKEN, authToken);
   };
-
-  // Registro simulado
-  const register = async (name: string, email: string, password: string): Promise<boolean> => {
-    if (!email.includes("@")) return false;
-
-    console.log(`Registrando usuário: ${name}, ${email}, ${password}`);
-    // Opcional: já loga o usuário ao registrar
-    const newUser: User = { id: Date.now().toString(), email, role: "Aluno" };
-    setUser(newUser);
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
-    return true;
-  };
-
+  
   const logout = async () => {
     setUser(null);
-    await AsyncStorage.removeItem(STORAGE_KEY);
+    setToken(null);
+    await AsyncStorage.removeItem(STORAGE_KEY_USER);
+    await AsyncStorage.removeItem(STORAGE_KEY_TOKEN);
   };
 
+  // A função register não é mais necessária no contexto, pois a tela chama a API diretamente
   return (
-    <AuthContext.Provider value={{ user, login, logout, register }}>
+    <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
