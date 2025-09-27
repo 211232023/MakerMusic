@@ -32,12 +32,10 @@ export default function TasksScreen() {
     }
 
     setIsLoading(true);
-    // Para este exemplo, vamos assumir que o professor tem apenas uma turma (classId: 1)
-    // Numa aplicação real, você teria uma forma de o professor selecionar a turma também.
+    
     const taskData = {
       title,
       studentId: selectedStudent.id,
-      classId: 1, // IMPORTANTE: Assumindo um ID de turma fixo para simplificar
     };
 
     const response = await createTask(taskData);

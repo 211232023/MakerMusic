@@ -1,11 +1,9 @@
 const pool = require('../config/db');
 
-// Obter todas as tarefas de um aluno específico
+// Rota do ALUNO para ver as suas tarefas (já existente e correta)
 exports.getStudentTasks = async (req, res) => {
   try {
-    // O ID do aluno vem do middleware que decodificou o token
     const studentId = req.user.id;
-
     const [tasks] = await pool.query(
       `SELECT t.id, t.title, t.due_date, ts.completed 
        FROM tasks t
@@ -13,7 +11,6 @@ exports.getStudentTasks = async (req, res) => {
        WHERE ts.student_id = ?`,
       [studentId]
     );
-
     res.json(tasks);
   } catch (error) {
     console.error(error);
@@ -21,21 +18,17 @@ exports.getStudentTasks = async (req, res) => {
   }
 };
 
-// Obter os alunos de um professor
+// Rota do PROFESSOR para obter a sua lista de alunos (CORRIGIDA)
 exports.getTeacherStudents = async (req, res) => {
   try {
     const teacherId = req.user.id; // O ID do professor vem do token
 
-    // Este query encontra todos os alunos (users) que estão matriculados (enrollments)
-    // em turmas (classes) lecionadas pelo professor logado.
-    const [students] = await pool.query(`
-      SELECT u.id, u.name 
-      FROM users u
-      JOIN enrollments e ON u.id = e.student_id
-      JOIN classes c ON e.class_id = c.id
-      WHERE c.teacher_id = ? AND u.role = 'ALUNO'
-      GROUP BY u.id, u.name
-    `, [teacherId]);
+    // Query CORRIGIDA: Seleciona todos os utilizadores (alunos)
+    // que têm o 'teacher_id' igual ao ID do professor logado.
+    const [students] = await pool.query(
+      `SELECT id, name FROM users WHERE role = 'ALUNO' AND teacher_id = ?`, 
+      [teacherId]
+    );
 
     res.json(students);
   } catch (error) {
@@ -44,20 +37,20 @@ exports.getTeacherStudents = async (req, res) => {
   }
 };
 
-// Criar uma nova tarefa para um aluno
+// Rota do PROFESSOR para criar uma tarefa para um aluno (CORRIGIDA)
 exports.createTaskForStudent = async (req, res) => {
-  const { title, studentId, classId } = req.body; // O professor irá escolher o aluno e a turma
-  const creatorId = req.user.id; // O criador é o professor logado
+  const { title, studentId } = req.body; // Já não precisamos de classId
+  const creatorId = req.user.id;
 
-  if (!title || !studentId || !classId) {
-    return res.status(400).json({ message: 'Título, aluno e turma são obrigatórios.' });
+  if (!title || !studentId) {
+    return res.status(400).json({ message: 'Título e aluno são obrigatórios.' });
   }
 
   try {
-    // Passo 1: Inserir a nova tarefa na tabela 'tasks'
+    // Passo 1: Inserir a nova tarefa na tabela 'tasks' (sem class_id)
     const [taskResult] = await pool.query(
-      'INSERT INTO tasks (title, class_id, creator_id) VALUES (?, ?, ?)',
-      [title, classId, creatorId]
+      'INSERT INTO tasks (title, creator_id) VALUES (?, ?)',
+      [title, creatorId]
     );
     const newTaskId = taskResult.insertId;
 

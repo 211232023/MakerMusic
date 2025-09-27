@@ -10,10 +10,16 @@ const authorize = require('../middleware/authorize');
 // 2º - Verifica se é ADMIN (authorize)
 router.use(authMiddleware, authorize('ADMIN'));
 
-// GET /api/admin/users
-router.get('/users', adminController.getAllUsers);
+router.get(
+  '/users',
+  [authMiddleware, authorize('ADMIN')],
+  adminController.getAllUsers
+);
 
-// POST /api/admin/assign-teacher
-router.post('/assign-teacher', adminController.assignTeacherToStudent);
+router.post(
+  '/assign-teacher',
+  [authMiddleware, authorize('ADMIN')],
+  adminController.assignTeacherToStudent
+);
 
 module.exports = router;
