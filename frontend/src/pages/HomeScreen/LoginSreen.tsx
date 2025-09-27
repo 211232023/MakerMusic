@@ -3,9 +3,11 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useUser } from "../src/UserContext";
-import { RootStackParamList } from "../src/types/navigation";
-import { loginUser } from "../../services/api"; // Importa a função da API
+// Importe a partir do seu ficheiro de tipos de navegação
+import { RootStackParamList } from "../src/types/navigation"; 
+import { loginUser } from "../../services/api";
 
+// A correção principal está aqui: "export default function..."
 export default function LoginScreen() {
   const { login } = useUser();
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -18,20 +20,14 @@ export default function LoginScreen() {
       Alert.alert("Erro", "Por favor, preencha todos os campos.");
       return;
     }
-
     setIsLoading(true);
 
     try {
       const response = await loginUser({ email, password });
 
       if (response.token && response.user) {
-        // Se o login for bem-sucedido, chama a função do context
-        // com os dados e o token recebidos do backend.
-        // O UserContext e o App.tsx tratarão da navegação.
-        login(response.user, response.token);
-
+        await login(response.user, response.token);
       } else {
-        // Mostra a mensagem de erro vinda do backend ou uma padrão
         Alert.alert("Erro de Login", response.message || "Email ou senha incorretos!");
       }
     } catch (error) {

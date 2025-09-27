@@ -1,80 +1,100 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../src/types/navigation';
+import React from 'react';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-type Props = NativeStackScreenProps<RootStackParamList, 'ScheduleScreen'>;
+// Importe os tipos do ficheiro central
+import { RootStackParamList } from '../src/types/navigation'; 
 
-interface Schedule {
+// Crie um tipo para os dados de exemplo
+type Schedule = {
   id: string;
-  day: string;
-  time: string;
-}
+  materia: string;
+  professor: string;
+  dia: string;
+  horario: string;
+};
 
-export default function HorariosScreen({ route, navigation }: Props) {
-  const [schedules, setSchedules] = useState<Schedule[]>([]);
+const DUMMY_SCHEDULES: Schedule[] = [
+  { id: '1', materia: 'Violão', professor: 'Carlos', dia: 'Segunda-feira', horario: '14:00 - 15:00' },
+  { id: '2', materia: 'Piano', professor: 'Ana', dia: 'Terça-feira', horario: '10:00 - 11:00' },
+  { id: '3', materia: 'Canto', professor: 'Mariana', dia: 'Quarta-feira', horario: '16:00 - 17:00' },
+];
 
-  useEffect(() => {
-  const { newSchedule } = route.params || {};
+// Use o tipo do nosso ficheiro de navegação para a propriedade de navegação
+type HorariosScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'HorariosScreen'>;
 
-  if (newSchedule) {
-    setSchedules(prevSchedules => {
-      // Evita adicionar o mesmo horário múltiplas vezes
-      if (prevSchedules.some(schedule => schedule.id === newSchedule.id)) {
-        return prevSchedules;
-      }
+// O componente agora não precisa de receber "props" diretamente,
+// pois usamos o hook "useNavigation"
+export default function HorariosScreen() {
+  const navigation = useNavigation<HorariosScreenNavigationProp>();
 
-      return [...prevSchedules, newSchedule];
-    });
-  }
-}, [route.params?.newSchedule]);
-
-  const handleRemove = (id: string) => {
-    Alert.alert(
-      'Remover Horário',
-      'Deseja realmente remover este horário?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Remover', style: 'destructive', onPress: () => setSchedules(prev => prev.filter(item => item.id !== id)) },
-      ]
-    );
-  };
+  const renderItem = ({ item }: { item: Schedule }) => (
+    <View style={styles.scheduleItem}>
+      <Text style={styles.itemMateria}>{item.materia}</Text>
+      <Text style={styles.itemDetails}>{item.professor} - {item.dia} às {item.horario}</Text>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Meus Horários</Text>
       <FlatList
-        data={schedules}
+        data={DUMMY_SCHEDULES}
+        renderItem={renderItem}
         keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View>
-              <Text style={styles.cardDay}>{item.day}</Text>
-              <Text style={styles.cardTime}>{item.time}</Text>
-            </View>
-            <TouchableOpacity style={styles.removeButton} onPress={() => handleRemove(item.id)}>
-              <Text style={styles.removeButtonText}>🗑️</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        ListEmptyComponent={<Text style={styles.emptyText}>Nenhum horário cadastrado</Text>}
+        style={styles.list}
       />
-      <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('AddScheduleScreen')}>
-        <Text style={styles.addButtonText}>+ Adicionar Horário</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Voltar</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-  title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, textAlign: 'center' },
-  card: { backgroundColor: '#2b2a2f', padding: 20, borderRadius: 12, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardDay: { color: '#f6e27f', fontSize: 18, fontWeight: 'bold' },
-  cardTime: { color: '#fff', fontSize: 16, marginTop: 4 },
-  removeButton: { backgroundColor: '#ff4d4d', padding: 10, borderRadius: 8 },
-  removeButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  emptyText: { color: '#aaa', textAlign: 'center', marginTop: 20 },
-  addButton: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10 },
-  addButtonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: '#1c1b1f',
+    padding: 20,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: '#f6e27f',
+    marginBottom: 30,
+    marginTop: 40,
+  },
+  list: {
+    width: '100%',
+  },
+  scheduleItem: {
+    backgroundColor: '#333',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+  },
+  itemMateria: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  itemDetails: {
+    fontSize: 14,
+    color: '#ccc',
+    marginTop: 5,
+  },
+  backButton: {
+    marginTop: 20,
+    backgroundColor: '#d4af37',
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+  },
+  backButtonText: {
+    color: '#1c1b1f',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });

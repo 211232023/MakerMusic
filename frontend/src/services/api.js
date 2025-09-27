@@ -34,3 +34,47 @@ export const loginUser = async (credentials) => {
     return { message: 'Não foi possível ligar ao servidor.' };
   }
 };
+
+export const getMyTasks = async () => {
+  try {
+    const headers = await createAuthHeaders();
+    const response = await fetch(`${BASE_URL}/tasks`, {
+      method: 'GET',
+      headers: headers,
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao obter tarefas:', error);
+    return []; // Retorna um array vazio em caso de erro de rede
+  }
+};
+
+export const getMyStudents = async () => {
+  try {
+    const headers = await createAuthHeaders();
+    const response = await fetch(`${BASE_URL}/tasks/students`, {
+      method: 'GET',
+      headers: headers,
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao obter alunos:', error);
+    return [];
+  }
+};
+
+// Criar uma nova tarefa
+export const createTask = async (taskData) => {
+  try {
+    const headers = await createAuthHeaders();
+    const response = await fetch(`${BASE_URL}/tasks`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify(taskData),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao criar tarefa:', error);
+    return { message: 'Erro de rede' };
+  }
+};

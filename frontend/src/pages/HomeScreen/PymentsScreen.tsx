@@ -33,7 +33,7 @@ export default function Pagamento() {
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Pagamentos</Text>
-        {(userRole === "Admin" || userRole === "Financeiro") && (
+        {(userRole === "ADMIN" || userRole === "FINANCEIRO") && (
           <TouchableOpacity 
             style={styles.addButton} 
             onPress={() => alert("Adicionar novo pagamento")}

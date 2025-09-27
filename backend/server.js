@@ -2,7 +2,9 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./src/routes/userRoutes');
-const { testConnection } = require('./src/config/db'); // Importa a nossa nova função
+const taskRoutes = require('./src/routes/taskRoutes');
+const adminRoutes = require('./src/routes/adminRoutes');
+const { testConnection } = require('./src/config/db'); 
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +15,8 @@ app.use(express.json());
 
 // Rotas
 app.use('/api/users', userRoutes);
+app.use('/api/tasks', taskRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Nova função assíncrona para iniciar o servidor
 const startServer = async () => {

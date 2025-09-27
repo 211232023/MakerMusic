@@ -1,61 +1,91 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { useUser } from "../src/UserContext";
-import { RootStackParamList } from "../src/types/navigation";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useUser } from '../src/UserContext';
 
-export default function ProfessorHomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+type Props = {
+  navigation: any;
+};
+
+export default function TeacherScreen({ navigation }: Props) {
   const { user, logout } = useUser();
 
-  // Apenas professores têm acesso a essa tela.
-  if (user?.role !== "Professor") {
+  // A CORREÇÃO ESTÁ AQUI: comparar com 'PROFESSOR' em vez de 'Professor'
+  if (user?.role !== 'PROFESSOR') {
     return (
       <View style={styles.container}>
-        <Text style={styles.title}>Acesso Negado</Text>
-        <Text style={styles.subtitle}>Você não tem permissão para visualizar esta tela.</Text>
+        <Text style={styles.errorText}>Acesso Negado</Text>
+        <Text style={styles.errorSubtitle}>Você não tem permissão para visualizar esta tela.</Text>
+        <TouchableOpacity style={styles.button} onPress={logout}>
+          <Text style={styles.buttonText}>Voltar ao Login</Text>
+        </TouchableOpacity>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>MakerMusic - Professor</Text>
+      <Text style={styles.title}>Painel do Professor</Text>
+      <Text style={styles.userName}>Bem-vindo, {user?.name}</Text>
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("TasksScreen")}
-      >
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TasksScreen')}>
         <Text style={styles.buttonText}>Gerenciar Tarefas</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("TeacherScreen")}
-      >
-        <Text style={styles.buttonText}>Marcar Presença</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PresencaScreen')}>
+        <Text style={styles.buttonText}>Lista de Presença</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("AddScheduleScreen")}
-      >
-        <Text style={styles.buttonText}>Horários</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.buttonExit} onPress={() => { logout(); navigation.replace("LoginScreen"); }}>
-        <Text style={styles.buttonText}>Sair</Text>
+      <TouchableOpacity style={[styles.button, {backgroundColor: '#8B0000'}]} onPress={logout}>
+          <Text style={styles.buttonText}>Sair</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// ... (os seus estilos permanecem iguais)
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1c1b1f", padding: 20, alignItems: "center" },
-  title: { fontSize: 28, fontWeight: "bold", color: "#f6e27f", marginBottom: 30, marginTop: 50 },
-  subtitle: { fontSize: 18, color: "#fff", textAlign: 'center', marginBottom: 30 },
-  button: { backgroundColor: "#d4af37", padding: 15, borderRadius: 10, width: "80%", alignItems: "center", marginVertical: 8 },
-  buttonExit: { backgroundColor: "#e74c3c", padding: 15, borderRadius: 10, width: "80%", alignItems: "center", marginTop: 20 },
-  buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 16 },
+    container: {
+        flex: 1,
+        backgroundColor: '#1c1b1f',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+    title: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#f6e27f',
+        marginBottom: 10,
+    },
+    userName: {
+        fontSize: 18,
+        color: '#fff',
+        marginBottom: 40,
+    },
+    button: {
+        backgroundColor: '#333',
+        padding: 20,
+        borderRadius: 10,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 15,
+    },
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 18,
+    },
+    errorText: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#FF6347', // Tomato red
+        textAlign: 'center',
+    },
+    errorSubtitle: {
+        fontSize: 16,
+        color: '#fff',
+        textAlign: 'center',
+        marginTop: 10,
+        marginBottom: 30,
+    },
 });

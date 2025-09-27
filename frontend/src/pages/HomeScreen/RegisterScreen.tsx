@@ -23,7 +23,7 @@ export default function RegisterScreen() {
       name,
       email,
       password,
-      role: "ALUNO", // Define um papel padrão para o registo
+      role: "ALUNO", 
     };
 
     try {

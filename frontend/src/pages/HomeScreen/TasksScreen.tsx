@@ -1,167 +1,113 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { useUser } from "../src/UserContext";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, FlatList } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { getMyStudents, createTask } from '../../services/api';
 
-// Tipagem da tarefa
-type TodoItem = {
+// Tipos
+type Student = {
   id: number;
-  text: string;
-  completed: boolean;
+  name: string;
 };
 
-export default function Tarefas() {
-  const { user } = useUser();
-  const userRole = user?.role;
+export default function TasksScreen() {
+  const navigation = useNavigation();
+  const [title, setTitle] = useState('');
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const [todos, setTodos] = useState<TodoItem[]>([
-    { id: 1, text: "Praticar escala C#", completed: false },
-    { id: 2, text: "Exercício 05 do capítulo 7 da apostila", completed: true },
-    { id: 3, text: "Praticar música nova", completed: false },
-  ]);
+  // Carregar a lista de alunos quando a tela abre
+  useEffect(() => {
+    const loadStudents = async () => {
+      const studentList = await getMyStudents();
+      setStudents(studentList);
+    };
+    loadStudents();
+  }, []);
 
-  const [newTask, setNewTask] = useState("");
+  const handleCreateTask = async () => {
+    if (!title.trim() || !selectedStudent) {
+      Alert.alert('Erro', 'Por favor, preencha o título da tarefa e selecione um aluno.');
+      return;
+    }
 
-  // Alterna conclusão da tarefa
-  const toggleComplete = (id: number) => {
-    setTodos(prev =>
-      prev.map(item =>
-        item.id === id ? { ...item, completed: !item.completed } : item
-      )
-    );
-  };
+    setIsLoading(true);
+    // Para este exemplo, vamos assumir que o professor tem apenas uma turma (classId: 1)
+    // Numa aplicação real, você teria uma forma de o professor selecionar a turma também.
+    const taskData = {
+      title,
+      studentId: selectedStudent.id,
+      classId: 1, // IMPORTANTE: Assumindo um ID de turma fixo para simplificar
+    };
 
-  // Adiciona nova tarefa
-  const addTask = () => {
-    if (!newTask.trim()) return Alert.alert("Erro", "Digite uma tarefa válida");
-    const task: TodoItem = { id: Date.now(), text: newTask, completed: false };
-    setTodos(prev => [...prev, task]);
-    setNewTask("");
-  };
+    const response = await createTask(taskData);
 
-  // Remove tarefa
-  const deleteTask = (id: number) => {
-    setTodos(prev => prev.filter(item => item.id !== id));
-  };
-
-  // Renderiza cada item da lista
-  const renderTodoItem = ({ item }: { item: TodoItem }) => {
-    const isEditable = userRole === "Professor" || userRole === "Admin";
-
-    return (
-      <View style={[styles.todoItem, item.completed && styles.todoItemCompleted]}>
-        <TouchableOpacity
-          style={[styles.checkbox, item.completed && styles.checkboxChecked]}
-          onPress={() => toggleComplete(item.id)}
-        >
-          {item.completed && <Text style={styles.checkmark}>✓</Text>}
-        </TouchableOpacity>
-
-        <Text style={[styles.todoText, item.completed && styles.completed]}>
-          {item.text}
-        </Text>
-
-        {isEditable && (
-          <TouchableOpacity onPress={() => deleteTask(item.id)} style={styles.deleteButton}>
-            <Text style={styles.deleteButtonText}>🗑️</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
+    if (response.taskId) {
+      Alert.alert('Sucesso', 'Tarefa criada e atribuída com sucesso!');
+      setTitle('');
+      setSelectedStudent(null);
+    } else {
+      Alert.alert('Erro', response.message || 'Não foi possível criar a tarefa.');
+    }
+    setIsLoading(false);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={10}
-    >
-      <Text style={styles.title}>Minhas Tarefas</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Gerenciar Tarefas</Text>
+      
+      <TextInput
+        style={styles.input}
+        placeholder="Título da Tarefa (ex: Praticar Escala Maior)"
+        placeholderTextColor="#aaa"
+        value={title}
+        onChangeText={setTitle}
+      />
 
-      {/* Input e botão de adicionar tarefas */}
-      {(userRole === "Professor" || userRole === "Admin") && (
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Nova tarefa"
-            placeholderTextColor="#aaa"
-            value={newTask}
-            onChangeText={setNewTask}
-          />
-          <TouchableOpacity style={styles.addButton} onPress={addTask}>
-            <Text style={styles.addButtonText}>Adicionar</Text>
+      <Text style={styles.label}>Atribuir para o Aluno:</Text>
+      <FlatList
+        data={students}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={[
+              styles.studentItem,
+              selectedStudent?.id === item.id && styles.selectedStudentItem,
+            ]}
+            onPress={() => setSelectedStudent(item)}
+          >
+            <Text style={styles.studentName}>{item.name}</Text>
           </TouchableOpacity>
-        </View>
+        )}
+        ListEmptyComponent={<Text style={styles.emptyText}>Nenhum aluno encontrado.</Text>}
+      />
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#d4af37" style={{ marginVertical: 20 }} />
+      ) : (
+        <TouchableOpacity style={styles.button} onPress={handleCreateTask}>
+          <Text style={styles.buttonText}>Criar Tarefa</Text>
+        </TouchableOpacity>
       )}
 
-      <FlatList
-        data={todos}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderTodoItem}
-        ListEmptyComponent={
-          <Text style={[styles.text, { textAlign: "center", marginTop: 20 }]}>
-            Nenhuma tarefa cadastrada
-          </Text>
-        }
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
-    </KeyboardAvoidingView>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1c1b1f", padding: 16 },
-  title: { fontSize: 26, color: "#f6e27f", fontWeight: "bold", marginBottom: 16 },
-  text: { color: "#e0d9c0", fontSize: 16 },
-  todoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 12,
-    marginBottom: 12,
-    backgroundColor: "#2a292c",
-    borderRadius: 12,
-  },
-  todoItemCompleted: { backgroundColor: "#3b3a3e" },
-  todoText: { flex: 1, color: "#e0d9c0", fontSize: 16, marginLeft: 12 },
-  completed: { textDecorationLine: "line-through", color: "#888" },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: "#d4af37",
-    borderRadius: 6,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkboxChecked: { backgroundColor: "#d4af37" },
-  checkmark: { color: "#1c1b1f", fontWeight: "bold" },
-  deleteButton: { marginLeft: 10 },
-  deleteButtonText: { color: "#f00", fontSize: 18 },
-  inputContainer: { flexDirection: "row", marginVertical: 10 },
-  input: {
-    flex: 1,
-    backgroundColor: "#333",
-    color: "#e0d9c0",
-    padding: 12,
-    borderRadius: 8,
-    marginRight: 8,
-    fontSize: 16,
-  },
-  addButton: {
-    backgroundColor: "#d4af37",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  addButtonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 16 },
+    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
+    label: { fontSize: 18, color: '#fff', marginBottom: 10 },
+    studentItem: { padding: 15, backgroundColor: '#333', borderRadius: 10, marginBottom: 10 },
+    selectedStudentItem: { backgroundColor: '#d4af37' },
+    studentName: { color: '#fff', fontSize: 16 },
+    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center' },
+    button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
+    buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
+    backButton: { position: 'absolute', bottom: 30, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16 },
 });
