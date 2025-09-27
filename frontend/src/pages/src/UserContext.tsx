@@ -5,19 +5,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 export type User = {
   id: string;
   email: string;
-  name: string; // Adicione o nome
-  role: "Aluno" | "Professor" | "Admin" | "Financeiro";
+  name: string;
+  role: string; // Garante que a propriedade 'role' está definida aqui
 };
 
 type AuthContextType = {
-  user: User | null;
-  token: string | null; // Adicione o estado para o token
-  login: (userData: User, token: string) => void; // A função login agora recebe os dados
+  user: User | null | undefined;
+  token: string | null;
+  login: (userData: User, token: string) => void;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
-  user: null,
+  user: undefined,
   token: null,
   login: () => {},
   logout: () => {},
@@ -26,11 +26,10 @@ const AuthContext = createContext<AuthContextType>({
 type AuthProviderProps = { children: ReactNode };
 
 export const UserProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null | undefined>(undefined);
   const [token, setToken] = useState<string | null>(null);
   const STORAGE_KEY_USER = "@loggedUser";
   const STORAGE_KEY_TOKEN = "@authToken";
-
 
   useEffect(() => {
     const loadStoredData = async () => {
@@ -40,9 +39,12 @@ export const UserProvider = ({ children }: AuthProviderProps) => {
         if (storedUser && storedToken) {
           setUser(JSON.parse(storedUser));
           setToken(storedToken);
+        } else {
+          setUser(null);
         }
       } catch (error) {
         console.log("Erro ao carregar dados do AsyncStorage:", error);
+        setUser(null);
       }
     };
     loadStoredData();
@@ -62,7 +64,6 @@ export const UserProvider = ({ children }: AuthProviderProps) => {
     await AsyncStorage.removeItem(STORAGE_KEY_TOKEN);
   };
 
-  // A função register não é mais necessária no contexto, pois a tela chama a API diretamente
   return (
     <AuthContext.Provider value={{ user, token, login, logout }}>
       {children}
@@ -70,9 +71,10 @@ export const UserProvider = ({ children }: AuthProviderProps) => {
   );
 };
 
-// Hook personalizado
 export const useUser = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useUser must be used within a UserProvider");
+  if (context === undefined) {
+    throw new Error("useUser must be used within a UserProvider");
+  }
   return context;
 };

@@ -1,25 +1,11 @@
-import { NavigatorScreenParams } from '@react-navigation/native';
-import PaymentsScreen from '../../screens/screens/PaymentsScreen';
-
+// Define os parâmetros para cada tela da sua navegação principal (Stack)
 export type RootStackParamList = {
-  LoginScreen: undefined;
+  // Telas de Autenticação
+  Login: undefined;
   Register: undefined;
-  HomeScreen: undefined;
-  TeacherScreen: undefined;
-  TasksScreen: undefined;
-  ScheduleScreen: { newSchedule?: { id: string; day: string; time: string } };
-  AddScheduleScreen: undefined;
-  AttendanceScreen: undefined;
-  ChatScreen: undefined;
-  AdminHomeScreen: undefined;
-  EntitiesScreen: undefined;
-  FinanceScreen: undefined;
-  PaymentsScreen: undefined;
-  StudentsScreen: undefined;
-};
 
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
-  }
-}
+  // Telas Pós-Login baseadas no Role
+  Home: undefined;      // Para Aluno e Financeiro
+  Admin: undefined;     // Para Admin
+  Teacher: undefined;   // Para Professor
+};

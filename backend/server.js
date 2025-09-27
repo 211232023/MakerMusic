@@ -1,23 +1,35 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const userRoutes = require('./src/routes/userRoutes'); // Importa as rotas de utilizador
-require('dotenv').config(); // Carrega as variáveis do ficheiro .env
+const userRoutes = require('./src/routes/userRoutes');
+const { testConnection } = require('./src/config/db'); // Importa a nossa nova função
 
 const app = express();
-const PORT = process.env.PORT || 3000; // A porta onde a sua API irá correr
+const PORT = process.env.PORT || 3000;
 
-// Middlewares essenciais
-app.use(cors()); // Permite pedidos de outros domínios (o seu frontend)
-app.use(express.json()); // Permite que o Express entenda JSON no corpo dos pedidos
+// Middlewares
+app.use(cors());
+app.use(express.json());
 
-// Rota principal da API
-app.get('/', (req, res) => {
-  res.send('API MakerMusic a funcionar!');
-});
-
-// Usa as rotas de utilizador para todos os pedidos que começam com /api/users
+// Rotas
 app.use('/api/users', userRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Servidor a correr na porta ${PORT}`);
-});
+// Nova função assíncrona para iniciar o servidor
+const startServer = async () => {
+  try {
+    // 1. Primeiro, tenta ligar-se à base de dados
+    await testConnection();
+
+    // 2. Se a ligação for bem-sucedida, e só então, inicia o servidor Express
+    app.listen(PORT, () => {
+      console.log(`🚀 Servidor pronto e a correr na porta ${PORT}`);
+    });
+  } catch (error) {
+    // Se a ligação à BD falhar, o servidor não inicia
+    console.error('🚫 Falha ao iniciar o servidor. Verifique a ligação com a base de dados.');
+    process.exit(1); // Encerra o processo com um código de erro
+  }
+};
+
+// Chama a função para iniciar tudo
+startServer();
