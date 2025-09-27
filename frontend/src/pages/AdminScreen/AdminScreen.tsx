@@ -1,80 +1,68 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import { useNavigation, NavigationProp } from "@react-navigation/native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { RootStackParamList } from "../src/types/navigation";
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { useUser } from '../src/UserContext'; // Importa o hook para aceder ao logout
 
-export default function AdminHomeScreen() {
-  // Tipando a navegação corretamente
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+export default function AdminScreen() {
+  const { logout, user } = useUser(); // Pega a função de logout e o utilizador do contexto
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Tem a certeza de que deseja sair?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { text: "Sair", onPress: () => logout() } // Chama a função de logout do contexto
+      ]
+    );
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Painel Admin</Text>
+      <Text style={styles.title}>MakerMusic</Text>
+      
+      {/* Informação de Debug para vermos qual utilizador está carregado */}
+      <Text style={styles.debugText}>
+        Logado como: {user?.name} ({user?.role})
+      </Text>
 
-      {/* Botão de Alunos */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("StudentsScreen")}
-        accessibilityLabel="Ir para lista de alunos"
-        accessible
-      >
-        <MaterialCommunityIcons name="account-school-outline" size={24} color="#1c1b1f" />
-        <Text style={styles.buttonText}>Alunos</Text>
-      </TouchableOpacity>
-
-      {/* Botão Financeiro */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("FinanceScreen")}
-        accessibilityLabel="Ir para painel financeiro"
-        accessible
-      >
-        <MaterialCommunityIcons name="finance" size={24} color="#1c1b1f" />
-        <Text style={styles.buttonText}>Financeiro</Text>
-      </TouchableOpacity>
-
-      {/* Botão de Entidades */}
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => navigation.navigate("EntitiesScreen")}
-        accessibilityLabel="Ir para entidades"
-        accessible
-      >
-        <MaterialCommunityIcons name="domain" size={24} color="#1c1b1f" />
-        <Text style={styles.buttonText}>Entidades</Text>
+      {/* Botão para forçar o Logout */}
+      <TouchableOpacity style={styles.button} onPress={handleLogout}>
+        <Text style={styles.buttonText}>Forçar Logout</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: "#1c1b1f", 
-    padding: 20, 
-    justifyContent: "center" 
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#1c1b1f',
   },
-  title: { 
-    color: "#f6e27f", 
-    fontSize: 28, 
-    fontWeight: "bold", 
-    textAlign: "center", 
-    marginBottom: 30 
+  title: {
+    color: '#f6e27f',
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 40,
+  },
+  debugText: {
+    color: '#fff',
+    marginBottom: 20,
+    paddingHorizontal: 20,
+    textAlign: 'center'
   },
   button: {
-    backgroundColor: "#d4af37",
+    backgroundColor: '#d4af37',
     padding: 15,
     borderRadius: 10,
-    marginVertical: 12,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
+    width: '80%',
+    alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
-    color: "#1c1b1f",
-    fontWeight: "bold",
+    color: '#1c1b1f',
+    fontWeight: 'bold',
     fontSize: 18,
-    marginLeft: 10,
   },
 });

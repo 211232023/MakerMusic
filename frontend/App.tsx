@@ -5,22 +5,21 @@ import { UserProvider, useUser } from './src/pages/src/UserContext';
 import LoginScreen from './src/pages/HomeScreen/LoginSreen';
 import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
 import HomeScreen from './src/pages/HomeScreen/HomeScreen';
-import AdminScreen from './src/pages/AdminScreen/AdminScreen'; // Garanta que o nome do ficheiro está correto
 import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
+import AdminHomeScreenComponent from './src/pages/AdminScreen/AdminScreen'; // O componente da tela Admin
 import { RootStackParamList } from './src/pages/src/types/navigation';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-
-// O nome da sua tela de Admin no navigation.ts é 'AdminHomeScreen'
-// mas o componente que você quer mostrar é o 'AdminScreen'.
-// Vamos importar o AdminScreen e dar-lhe o nome correto na navegação.
-import AdminHomeScreenComponent from './src/pages/AdminScreen/AdminScreen';
-
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator = () => {
   const { user } = useUser();
 
+  // --- FERRAMENTA DE DIAGNÓSTICO ---
+  // Este log irá mostrar no seu terminal do frontend qual utilizador está a ser usado.
+  console.log('AppNavigator está a renderizar com o seguinte utilizador:', JSON.stringify(user, null, 2));
+
+  // Mostra uma tela de loading enquanto o user é carregado do AsyncStorage
   if (user === undefined) {
     return (
       <View style={styles.loadingContainer}>
@@ -33,27 +32,23 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {user ? (
-          // Se o utilizador estiver logado, decide para onde o enviar
+          // Se o utilizador estiver logado (user não é nulo)
           <>
-            {/* CORREÇÃO: Usando o nome 'AdminHomeScreen' como definido no seu navigation.ts */}
+            {/* Lógica de navegação baseada no role */}
             {user.role.toUpperCase() === 'ADMIN' && (
               <Stack.Screen name="AdminHomeScreen" component={AdminHomeScreenComponent} />
             )}
-            {/* CORREÇÃO: Usando o nome 'TeacherScreen' */}
             {user.role.toUpperCase() === 'PROFESSOR' && (
               <Stack.Screen name="TeacherScreen" component={TeacherScreen} />
             )}
-            {/* CORREÇÃO: Usando o nome 'HomeScreen' */}
             {(user.role.toUpperCase() === 'ALUNO' || user.role.toUpperCase() === 'FINANCEIRO') && (
               <Stack.Screen name="HomeScreen" component={HomeScreen} />
             )}
           </>
         ) : (
-          // Se não estiver logado, mostra as telas de autenticação
+          // Se não estiver logado (user é nulo), mostra as telas de autenticação
           <>
-            {/* CORREÇÃO: Usando o nome 'LoginScreen' */}
             <Stack.Screen name="LoginScreen" component={LoginScreen} />
-            {/* O nome 'Register' já estava correto no seu navigation.ts */}
             <Stack.Screen name="Register" component={RegisterScreen} />
           </>
         )}
