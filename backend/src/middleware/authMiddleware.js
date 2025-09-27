@@ -1,35 +1,34 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = function(req, res, next) {
-  // Obter o token do cabeçalho do pedido
-  const token = req.header('Authorization')?.split(' ')[1]; // Formato "Bearer TOKEN"
+  // Obter o token do cabeçalho de autorização
+  const authHeader = req.header('Authorization');
 
-  // Verificar se não há token
-  if (!token) {
+  if (!authHeader) {
     return res.status(401).json({ message: 'Acesso negado. Nenhum token fornecido.' });
   }
 
   try {
+    // O token geralmente vem no formato "Bearer <token>"
+    const token = authHeader.split(' ')[1];
+    console.log('[BACKEND] authMiddleware: Token recebido:', token);
+
+    if (!token) {
+      return res.status(401).json({ message: 'Formato de token inválido.' });
+    }
+
     // Verificar se o token é válido
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user; // Adiciona os dados do user ao objeto 'req'
-    next(); // Passa para o próximo passo (o controlador)
-  } catch (ex) {
-    res.status(400).json({ message: 'Token inválido.' });
-  }
-};
-
-const authorize = (roles = []) => {
-  // Garante que 'roles' seja sempre um array
-  if (typeof roles === 'string') {
-    roles = [roles];
-  }
-
-  return (req, res, next) => {
-    // O authMiddleware já deve ter colocado o req.user
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: 'Acesso proibido. Você не tem a permissão necessária.' });
-    }
+    console.log('[BACKEND] authMiddleware: Token descodificado com sucesso:', decoded.user);
+    
+    // Adiciona os dados do utilizador ao objeto de pedido (request)
+    req.user = decoded.user;
+    
+    // Continua para a próxima função na cadeia (seja outro middleware ou o controlador)
     next();
-  };
+  } catch (error) {
+    // Se jwt.verify falhar (token expirado, inválido, etc.), ele lança um erro
+    console.error('[BACKEND] authMiddleware: Erro!', error.message);
+    res.status(401).json({ message: 'Token inválido ou expirado.' });
+  }
 };

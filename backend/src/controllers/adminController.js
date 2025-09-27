@@ -2,10 +2,13 @@ const pool = require('../config/db');
 
 // Listar todos os utilizadores (para o Admin ver quem pode associar)
 exports.getAllUsers = async (req, res) => {
+  console.log('[BACKEND] adminController: A executar getAllUsers...'); // <-- LOG 8
   try {
-    const [users] = await pool.query('SELECT id, name, email, role FROM users');
+    const [users] = await pool.query('SELECT id, name, email, role, teacher_id FROM users');
+    console.log('[BACKEND] adminController: Utilizadores encontrados na base de dados.'); // <-- LOG 9
     res.json(users);
   } catch (error) {
+    console.error('[BACKEND] adminController: Erro na base de dados!', error); // <-- LOG DE ERRO
     res.status(500).json({ message: 'Erro no servidor' });
   }
 };

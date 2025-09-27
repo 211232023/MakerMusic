@@ -2,20 +2,22 @@ const express = require('express');
 const router = express.Router();
 const adminController = require('../controllers/adminController');
 const authMiddleware = require('../middleware/authMiddleware');
-// Agora este 'require' irá funcionar porque o ficheiro existe
 const authorize = require('../middleware/authorize');
 
-// Aplica os middlewares para todas as rotas neste ficheiro
-// 1º - Verifica se está logado (authMiddleware)
-// 2º - Verifica se é ADMIN (authorize)
-router.use(authMiddleware, authorize('ADMIN'));
-
+// Rota para obter todos os utilizadores (Protegida)
+// GET /api/admin/users
+// A sequência [authMiddleware, authorize('ADMIN')] garante que:
+// 1. O utilizador está logado.
+// 2. O utilizador tem o perfil 'ADMIN'.
+// Só depois a função getAllUsers é chamada.
 router.get(
   '/users',
   [authMiddleware, authorize('ADMIN')],
   adminController.getAllUsers
 );
 
+// Rota para associar um professor a um aluno (Protegida)
+// POST /api/admin/assign-teacher
 router.post(
   '/assign-teacher',
   [authMiddleware, authorize('ADMIN')],

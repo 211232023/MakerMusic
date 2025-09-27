@@ -6,12 +6,12 @@ const authorize = (roles = []) => {
   }
 
   return (req, res, next) => {
-    // O authMiddleware já deve ter colocado o req.user
+    console.log(`[BACKEND] authorize: A verificar se o utilizador (${req.user?.role}) tem a permissão (${roles})`); // <-- LOG 6
     if (!req.user || !roles.includes(req.user.role)) {
-      // 403 Forbidden é o status correto para permissão negada
-      return res.status(403).json({ message: 'Acesso proibido. Você não tem a permissão necessária.' });
+      console.error('[BACKEND] authorize: Acesso negado!'); // <-- LOG DE ERRO
+      return res.status(403).json({ message: 'Acesso proibido.' });
     }
-    // Se tiver permissão, continua para a próxima função (o controlador)
+    console.log('[BACKEND] authorize: Permissão concedida.'); // <-- LOG 7
     next();
   };
 };

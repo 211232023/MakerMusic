@@ -78,3 +78,40 @@ export const createTask = async (taskData) => {
     return { message: 'Erro de rede' };
   }
 };
+
+// Obter a lista de todos os utilizadores
+export const getAllUsers = async () => {
+  try {
+    const headers = await createAuthHeaders();
+    console.log('[FRONTEND] A enviar pedido para /api/admin/users com o token:', headers.Authorization); // <-- LOG 1
+
+    const response = await fetch(`${BASE_URL}/admin/users`, {
+      method: 'GET',
+      headers: headers,
+    });
+
+    const data = await response.json();
+    console.log('[FRONTEND] Resposta recebida do backend:', data); // <-- LOG 2
+    return data;
+
+  } catch (error) {
+    console.error('[FRONTEND] Erro de rede ao obter utilizadores:', error); // <-- LOG DE ERRO
+    return [];
+  }
+};
+
+
+export const assignTeacher = async (studentId, teacherId) => {
+  try {
+    const headers = await createAuthHeaders();
+    const response = await fetch(`${BASE_URL}/admin/assign-teacher`, {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ studentId, teacherId }),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao associar professor:', error);
+    return { message: 'Erro de rede' };
+  }
+};
