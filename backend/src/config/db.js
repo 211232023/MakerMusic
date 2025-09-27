@@ -12,17 +12,17 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-// Nova função para garantir que o pool de ligações está funcional
 const testConnection = async () => {
   try {
     const connection = await pool.getConnection();
     console.log('✅ Ligação à base de dados estabelecida com sucesso pelo pool.');
-    connection.release(); // Devolve a ligação ao pool
+    connection.release();
   } catch (error) {
     console.error('❌ Falha ao obter ligação do pool:', error);
-    throw error; // Lança o erro para impedir o servidor de iniciar se a BD não estiver disponível
+    throw error;
   }
 };
 
-// Exporta o pool e a função de teste
+// --- ALTERAÇÃO AQUI ---
+// Exporte um objeto que contém tanto o pool como a função de teste
 module.exports = { pool, testConnection };

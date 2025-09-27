@@ -1,160 +1,183 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet, Alert } from "react-native";
+import React, { useState, useCallback } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useUser } from '../src/UserContext';
+import { getAllUsers, deleteUser } from '../../services/api';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../src/types/navigation';
 
-type User = { 
-  id: string; 
-  name: string; 
-  email: string; 
-  role: "Aluno" | "Professor" | "Admin" 
+// Tipo para os utilizadores que virão da API
+type UserFromApi = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
 };
 
-export default function Entidades() {
-  const [users, setUsers] = useState<User[]>([
-    { id: "1", name: "Maria", email: "maria@email.com", role: "Aluno" },
-    { id: "2", name: "João", email: "joao@email.com", role: "Professor" },
-  ]);
+export default function EntitiesScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { token } = useUser(); // Pegar o token do utilizador logado
+  
+  const [users, setUsers] = useState<UserFromApi[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<"Aluno" | "Professor" | "Admin">("Aluno");
+  // Função para carregar os utilizadores do backend
+  const fetchUsers = useCallback(async () => {
+    if (!token) return;
+    try {
+      setIsLoading(true);
+      const data = await getAllUsers(token);
+      if (Array.isArray(data)) {
+        setUsers(data);
+      }
+    } catch (error) {
+      Alert.alert("Erro", "Não foi possível carregar a lista de utilizadores.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [token]);
 
-  const deleteUser = (id: string) => {
+  // useFocusEffect é como o useEffect, mas é executado sempre que a tela entra em foco
+  useFocusEffect(
+    useCallback(() => {
+      fetchUsers();
+    }, [fetchUsers])
+  );
+
+  // Função chamada ao pressionar o botão de excluir
+  const handleDelete = (userId: string) => {
     Alert.alert(
       "Confirmar Exclusão",
-      "Tem certeza que deseja excluir este usuário?",
+      "Você tem certeza de que deseja excluir este utilizador? Esta ação não pode ser desfeita.",
       [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Excluir", style: "destructive", onPress: () => setUsers(prev => prev.filter(u => u.id !== id)) },
+        {
+          text: "Cancelar",
+          style: "cancel"
+        },
+        { 
+          text: "Excluir", 
+          onPress: async () => {
+            if (!token) return;
+            const response = await deleteUser(userId, token);
+            if (response.message === 'Usuário apagado com sucesso.') {
+              Alert.alert("Sucesso", response.message);
+              // Recarrega a lista de utilizadores para refletir a exclusão
+              fetchUsers(); 
+            } else {
+              Alert.alert("Erro", response.message || "Não foi possível excluir o utilizador.");
+            }
+          },
+          style: "destructive"
+        }
       ]
     );
   };
 
-  const handleAddUser = () => {
-    if (!newName.trim() || !newEmail.trim()) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
-      return;
-    }
-
-    const newUser: User = {
-      id: Date.now().toString(),
-      name: newName,
-      email: newEmail,
-      role: newRole,
-    };
-
-    setUsers(prev => [...prev, newUser]);
-
-    setNewName("");
-    setNewEmail("");
-    setNewRole("Aluno");
-
-    Alert.alert("Sucesso", "Usuário adicionado com sucesso!");
-  };
-
-  const renderUser = ({ item }: { item: User }) => (
-    <View style={styles.card}>
-      <View>
-        <Text style={styles.userName}>{item.name}</Text>
-        <Text style={styles.userRole}>{item.role}</Text>
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#d4af37" />
+        <Text style={styles.loadingText}>A carregar utilizadores...</Text>
       </View>
-      <TouchableOpacity style={styles.deleteButton} onPress={() => deleteUser(item.id)}>
-        <Text style={styles.deleteText}>Excluir</Text>
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Gerenciar Usuários</Text>
-
-      {/* Formulário */}
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Nome"
-          placeholderTextColor="#aaa"
-          value={newName}
-          onChangeText={setNewName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Email"
-          placeholderTextColor="#aaa"
-          value={newEmail}
-          onChangeText={setNewEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddUser}>
-          <Text style={styles.buttonText}>Adicionar Usuário</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Lista de usuários */}
+      <Text style={styles.title}>Todos os Utilizadores</Text>
       <FlatList
         data={users}
-        keyExtractor={item => item.id}
-        renderItem={renderUser}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.userItem}>
+            <View>
+              <Text style={styles.userName}>{item.name}</Text>
+              <Text style={styles.userEmail}>{item.email}</Text>
+              <Text style={styles.userRole}>{item.role}</Text>
+            </View>
+            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDelete(item.id)}>
+              <Text style={styles.deleteButtonText}>Excluir</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+        ListEmptyComponent={
+          <Text style={styles.emptyText}>Nenhum utilizador encontrado no sistema.</Text>
+        }
       />
+       <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1c1b1f", padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#f6e27f", marginBottom: 20 },
-
-  // Formulário
-  formContainer: {
-    marginBottom: 20,
-    padding: 15,
-    backgroundColor: "#2a292d",
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
+  container: {
+    flex: 1,
+    backgroundColor: '#1c1b1f',
+    padding: 20,
   },
-  input: {
-    width: "100%",
-    backgroundColor: "#333",
-    color: "#fff",
-    padding: 12,
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#f6e27f',
+    marginBottom: 20,
+    marginTop: 40,
+    textAlign: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#f6e27f',
+  },
+  userItem: {
+    backgroundColor: '#333',
+    padding: 15,
     borderRadius: 10,
     marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  addButton: {
-    backgroundColor: "#d4af37",
-    padding: 15,
-    borderRadius: 12,
-    alignItems: "center",
+  userName: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
-  buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 16 },
-
-  // Lista de usuários
-  card: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#2a292d",
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 3,
+  userEmail: {
+    color: '#ccc',
+    fontSize: 14,
   },
-  userName: { color: "#f6e27f", fontSize: 16, fontWeight: "bold" },
-  userRole: { color: "#e0d9c0", fontSize: 14, marginTop: 2 },
+  userRole: {
+    color: '#d4af37',
+    fontSize: 12,
+    textTransform: 'uppercase',
+    marginTop: 4,
+  },
   deleteButton: {
-    backgroundColor: "#e74c3c",
-    paddingVertical: 6,
+    backgroundColor: '#8B0000', // Vermelho escuro
+    paddingVertical: 8,
     paddingHorizontal: 12,
-    borderRadius: 10,
+    borderRadius: 5,
   },
-  deleteText: { color: "#fff", fontWeight: "bold" },
+  deleteButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  emptyText: {
+    color: '#aaa',
+    textAlign: 'center',
+    marginTop: 50,
+  },
+  backButton: { 
+    marginTop: 20,
+    alignSelf: 'center' 
+  },
+  backButtonText: { 
+    color: '#d4af37', 
+    fontSize: 16 
+  },
 });

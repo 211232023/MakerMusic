@@ -1,118 +1,129 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { getAllUsers, assignTeacher } from '../../services/api';
-import { User } from '../src/UserContext'; // Reutilizamos o tipo User
+import React, { useState, useEffect } from 'react';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Button } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
+import { useUser } from '../src/UserContext';
+import { getAllUsers, assignTeacherToStudent } from '../../services/api';
+
+// Definimos o tipo User aqui para incluir teacher_id
+type User = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'ALUNO' | 'PROFESSOR' | 'ADMIN' | 'FINANCEIRO';
+  teacher_id?: number | null;
+};
 
 export default function ManageUsersScreen() {
-  const navigation = useNavigation();
+  const { token } = useUser();
   const [users, setUsers] = useState<User[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
-  const [selectedTeacher, setSelectedTeacher] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAssigning, setIsAssigning] = useState(false);
+  // --- MUDANÇA 1: Usar string vazia em vez de null ---
+  const [selectedTeacher, setSelectedTeacher] = useState<string>("");
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      setIsLoading(true);
-      const userList = await getAllUsers();
-      setUsers(userList);
-      setIsLoading(false);
-    };
-    fetchUsers();
-  }, []);
-
-  // Usamos useMemo para separar os utilizadores em listas de alunos e professores
-  // de forma eficiente, sem ter de recalcular a cada renderização.
-  const { students, teachers } = useMemo(() => {
-    const students = users.filter(u => u.role === 'ALUNO');
-    const teachers = users.filter(u => u.role === 'PROFESSOR');
-    return { students, teachers };
-  }, [users]);
-
-  const handleAssign = async () => {
-    if (!selectedStudent || !selectedTeacher) {
-      Alert.alert('Seleção Incompleta', 'Por favor, selecione um aluno e um professor.');
-      return;
-    }
-    setIsAssigning(true);
-    const response = await assignTeacher(selectedStudent.id, selectedTeacher.id);
-    setIsAssigning(false);
-
-    if (response.message.includes('sucesso')) {
-      Alert.alert('Sucesso!', `O professor ${selectedTeacher.name} foi associado ao aluno ${selectedStudent.name}.`);
-      setSelectedStudent(null);
-      setSelectedTeacher(null);
-    } else {
-      Alert.alert('Erro', response.message || 'Não foi possível fazer a associação.');
+  const fetchUsers = async () => {
+    if (token) {
+      const allUsers = await getAllUsers(token);
+      if (Array.isArray(allUsers)) {
+        setUsers(allUsers);
+      }
     }
   };
 
-  if (isLoading) {
-    return <View style={styles.centerContainer}><ActivityIndicator size="large" color="#d4af37" /></View>;
-  }
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const openAssignModal = (student: User) => {
+    setSelectedStudent(student);
+    // --- MUDANÇA 2: Resetar para string vazia ---
+    setSelectedTeacher(""); 
+    setModalVisible(true);
+  };
+
+  const handleAssignTeacher = async () => {
+    // A verificação !selectedTeacher continua a funcionar com a string vazia
+    if (!selectedStudent || !selectedTeacher || !token) {
+      Alert.alert('Erro', 'Selecione um aluno e um professor.');
+      return;
+    }
+
+    const response = await assignTeacherToStudent(selectedStudent.id, selectedTeacher, token);
+    
+    if (response.message === 'Professor vinculado ao aluno com sucesso!') {
+      Alert.alert('Sucesso', response.message);
+      fetchUsers();
+      setModalVisible(false);
+    } else {
+      Alert.alert('Erro', response.message || 'Não foi possível vincular o professor.');
+    }
+  };
+
+  const teachers = users.filter(u => u.role === 'PROFESSOR');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Associar Aluno a Professor</Text>
-
-      <View style={styles.column}>
-        <Text style={styles.listTitle}>Alunos</Text>
-        <FlatList
-          data={students}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.item, selectedStudent?.id === item.id && styles.selectedItem]}
-              onPress={() => setSelectedStudent(item)}
-            >
-              <Text style={styles.itemText}>{item.name}</Text>
+      <Text style={styles.title}>Gerir Utilizadores</Text>
+      <FlatList
+        data={users.filter(u => u.role === 'ALUNO')}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={styles.userItem}>
+            <Text style={styles.userName}>{item.name}</Text>
+            <Text style={styles.userEmail}>{item.email}</Text>
+            <TouchableOpacity style={styles.button} onPress={() => openAssignModal(item)}>
+              <Text style={styles.buttonText}>Vincular Professor</Text>
             </TouchableOpacity>
-          )}
-        />
-      </View>
+          </View>
+        )}
+      />
 
-      <View style={styles.column}>
-        <Text style={styles.listTitle}>Professores</Text>
-        <FlatList
-          data={teachers}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.item, selectedTeacher?.id === item.id && styles.selectedItem]}
-              onPress={() => setSelectedTeacher(item)}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Vincular Professor a</Text>
+            <Text style={styles.modalStudentName}>{selectedStudent?.name}</Text>
+            
+            <Picker
+              selectedValue={selectedTeacher}
+              style={styles.picker}
+              onValueChange={(itemValue: string) => setSelectedTeacher(itemValue)}
             >
-              <Text style={styles.itemText}>{item.name}</Text>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
+              {/* --- MUDANÇA 3: Usar string vazia como valor do item "placeholder" --- */}
+              <Picker.Item label="Selecione um professor..." value="" />
+              {teachers.map((teacher) => (
+                <Picker.Item key={teacher.id} label={teacher.name} value={teacher.id} />
+              ))}
+            </Picker>
 
-      {isAssigning ? (
-        <ActivityIndicator size="large" color="#d4af37" style={{ height: 50 }}/>
-      ) : (
-        <TouchableOpacity style={styles.assignButton} onPress={handleAssign}>
-          <Text style={styles.assignButtonText}>Associar</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.backText}>Voltar</Text>
-      </TouchableOpacity>
+            <Button title="Salvar Vinculação" onPress={handleAssignTeacher} color="#d4af37" />
+            <View style={{ marginTop: 10 }}>
+              <Button title="Cancelar" onPress={() => setModalVisible(false)} color="grey" />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20, paddingTop: 60 },
-    centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#1c1b1f' },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#f6e27f', textAlign: 'center', marginBottom: 20 },
-    column: { flex: 1, marginBottom: 10 },
-    listTitle: { fontSize: 18, color: '#fff', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#333', paddingBottom: 5 },
-    item: { padding: 15, backgroundColor: '#333', borderRadius: 5, marginBottom: 5 },
-    selectedItem: { backgroundColor: '#d4af37' },
-    itemText: { color: '#fff' },
-    assignButton: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, alignItems: 'center', marginVertical: 10, height: 50 },
-    assignButtonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 16 },
-    backText: { color: '#d4af37', textAlign: 'center', marginTop: 10 }
+    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
+    title: { fontSize: 24, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, textAlign: 'center' },
+    userItem: { backgroundColor: '#333', padding: 15, borderRadius: 10, marginBottom: 10 },
+    userName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+    userEmail: { color: '#ccc', fontSize: 14 },
+    button: { backgroundColor: '#d4af37', padding: 10, borderRadius: 5, marginTop: 10, alignItems: 'center' },
+    buttonText: { color: '#1c1b1f', fontWeight: 'bold' },
+    modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+    modalView: { width: '80%', backgroundColor: '#333', borderRadius: 20, padding: 35, alignItems: 'center' },
+    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
+    modalStudentName: { fontSize: 18, color: '#f6e27f', marginBottom: 15 },
+    picker: { width: '100%', height: 150, color: '#fff', backgroundColor: '#444', marginBottom: 20 },
 });

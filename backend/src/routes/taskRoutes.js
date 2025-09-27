@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
-const authMiddleware = require('../middleware/authMiddleware'); // Importa o nosso middleware
+const authMiddleware = require('../middleware/authMiddleware');
+const authorize = require('../middleware/authorize');
 
-// GET /api/tasks
-// A rota está protegida. O 'authMiddleware' corre primeiro.
-// Se o token for válido, ele chama 'getStudentTasks'.
-router.get('/', authMiddleware, taskController.getStudentTasks);
+// Rota para professor criar uma tarefa para um aluno
+router.post('/', authMiddleware, authorize(['PROFESSOR']), taskController.createTask);
+
+// Rota para aluno ou professor ver as tarefas de um aluno específico
+router.get('/student/:studentId', authMiddleware, authorize(['ALUNO', 'PROFESSOR']), taskController.getTasksByStudent);
 
 module.exports = router;

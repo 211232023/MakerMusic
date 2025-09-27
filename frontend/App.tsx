@@ -21,6 +21,7 @@ import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 
+
 // Use os tipos importados para criar o navegador
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

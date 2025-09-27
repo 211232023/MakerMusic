@@ -1,68 +1,35 @@
 const pool = require('../config/db');
 
-// Rota do ALUNO para ver as suas tarefas (já existente e correta)
-exports.getStudentTasks = async (req, res) => {
-  try {
-    const studentId = req.user.id;
-    const [tasks] = await pool.query(
-      `SELECT t.id, t.title, t.due_date, ts.completed 
-       FROM tasks t
-       JOIN task_submissions ts ON t.id = ts.task_id
-       WHERE ts.student_id = ?`,
-      [studentId]
-    );
-    res.json(tasks);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erro no servidor ao obter tarefas.' });
-  }
+// Cria uma nova tarefa para um aluno específico
+exports.createTask = async (req, res) => {
+    // O creator_id vem do token (usuário logado)
+    const creatorId = req.user.id; 
+    const { studentId, title, dueDate } = req.body;
+
+    if (!studentId || !title) {
+        return res.status(400).json({ message: 'ID do aluno e título são obrigatórios.' });
+    }
+
+    try {
+        await pool.query(
+            'INSERT INTO tasks (student_id, creator_id, title, due_date) VALUES (?, ?, ?, ?)',
+            [studentId, creatorId, title, dueDate || null]
+        );
+        res.status(201).json({ message: 'Tarefa criada com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao criar tarefa:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
 };
 
-// Rota do PROFESSOR para obter a sua lista de alunos (CORRIGIDA)
-exports.getTeacherStudents = async (req, res) => {
-  try {
-    const teacherId = req.user.id; // O ID do professor vem do token
-
-    // Query CORRIGIDA: Seleciona todos os utilizadores (alunos)
-    // que têm o 'teacher_id' igual ao ID do professor logado.
-    const [students] = await pool.query(
-      `SELECT id, name FROM users WHERE role = 'ALUNO' AND teacher_id = ?`, 
-      [teacherId]
-    );
-
-    res.json(students);
-  } catch (error) {
-    console.error("Erro ao obter alunos:", error);
-    res.status(500).json({ message: 'Erro no servidor' });
-  }
-};
-
-// Rota do PROFESSOR para criar uma tarefa para um aluno (CORRIGIDA)
-exports.createTaskForStudent = async (req, res) => {
-  const { title, studentId } = req.body; // Já não precisamos de classId
-  const creatorId = req.user.id;
-
-  if (!title || !studentId) {
-    return res.status(400).json({ message: 'Título e aluno são obrigatórios.' });
-  }
-
-  try {
-    // Passo 1: Inserir a nova tarefa na tabela 'tasks' (sem class_id)
-    const [taskResult] = await pool.query(
-      'INSERT INTO tasks (title, creator_id) VALUES (?, ?)',
-      [title, creatorId]
-    );
-    const newTaskId = taskResult.insertId;
-
-    // Passo 2: Ligar esta tarefa ao aluno na tabela 'task_submissions'
-    await pool.query(
-      'INSERT INTO task_submissions (task_id, student_id) VALUES (?, ?)',
-      [newTaskId, studentId]
-    );
-
-    res.status(201).json({ message: 'Tarefa criada e atribuída com sucesso!', taskId: newTaskId });
-  } catch (error) {
-    console.error("Erro ao criar tarefa:", error);
-    res.status(500).json({ message: 'Erro no servidor' });
-  }
+// Pega as tarefas de um aluno específico
+exports.getTasksByStudent = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const [tasks] = await pool.query('SELECT * FROM tasks WHERE student_id = ? ORDER BY created_at DESC', [studentId]);
+        res.json(tasks);
+    } catch (error) {
+        console.error('Erro ao buscar tarefas:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
 };

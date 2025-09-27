@@ -64,54 +64,64 @@ export const getMyStudents = async () => {
 };
 
 // Criar uma nova tarefa
-export const createTask = async (taskData) => {
-  try {
-    const headers = await createAuthHeaders();
+export const createTask = async (taskData, token) => {
     const response = await fetch(`${BASE_URL}/tasks`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify(taskData),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(taskData) // ex: { studentId: '1', title: 'Estudar...', dueDate: '2025-10-10' }
     });
     return response.json();
-  } catch (error) {
-    console.error('Erro ao criar tarefa:', error);
-    return { message: 'Erro de rede' };
-  }
 };
 
 // Obter a lista de todos os utilizadores
-export const getAllUsers = async () => {
-  try {
-    const headers = await createAuthHeaders();
-    console.log('[FRONTEND] A enviar pedido para /api/admin/users com o token:', headers.Authorization); // <-- LOG 1
-
+export const getAllUsers = async (token) => {
     const response = await fetch(`${BASE_URL}/admin/users`, {
-      method: 'GET',
-      headers: headers,
+        headers: { 'Authorization': `Bearer ${token}` }
     });
-
-    const data = await response.json();
-    console.log('[FRONTEND] Resposta recebida do backend:', data); // <-- LOG 2
-    return data;
-
-  } catch (error) {
-    console.error('[FRONTEND] Erro de rede ao obter utilizadores:', error); // <-- LOG DE ERRO
-    return [];
-  }
+    return response.json();
 };
 
 
-export const assignTeacher = async (studentId, teacherId) => {
-  try {
-    const headers = await createAuthHeaders();
+export const assignTeacherToStudent = async (studentId, teacherId, token) => {
     const response = await fetch(`${BASE_URL}/admin/assign-teacher`, {
-      method: 'POST',
-      headers: headers,
-      body: JSON.stringify({ studentId, teacherId }),
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ studentId, teacherId })
+    });
+    return response.json();
+};
+
+export const getStudentsByTeacher = async (teacherId, token) => {
+    const response = await fetch(`${BASE_URL}/admin/teacher/${teacherId}/students`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+};
+
+export const getTasksByStudent = async (studentId, token) => {
+    const response = await fetch(`${BASE_URL}/tasks/student/${studentId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+};
+
+export const deleteUser = async (userId, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
     return response.json();
   } catch (error) {
-    console.error('Erro ao associar professor:', error);
-    return { message: 'Erro de rede' };
+    console.error('Erro ao deletar utilizador:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
   }
 };

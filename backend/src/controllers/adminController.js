@@ -1,34 +1,67 @@
-const pool = require('../config/db');
+const { pool } = require('../config/db');
 
-// Listar todos os utilizadores (para o Admin ver quem pode associar)
+// Busca todos os usuários (exceto o próprio admin que faz o pedido)
 exports.getAllUsers = async (req, res) => {
-  console.log('[BACKEND] adminController: A executar getAllUsers...'); // <-- LOG 8
-  try {
-    const [users] = await pool.query('SELECT id, name, email, role, teacher_id FROM users');
-    console.log('[BACKEND] adminController: Utilizadores encontrados na base de dados.'); // <-- LOG 9
-    res.json(users);
-  } catch (error) {
-    console.error('[BACKEND] adminController: Erro na base de dados!', error); // <-- LOG DE ERRO
-    res.status(500).json({ message: 'Erro no servidor' });
-  }
+    try {
+        // Usamos "!= ?" para não listar o próprio admin na lista de usuários a gerir
+        const [users] = await pool.query('SELECT id, name, email, role, teacher_id FROM users WHERE id != ?', [req.user.id]);
+        res.json(users);
+    } catch (error) {
+        console.error('Erro ao buscar todos os usuários:', error);
+        res.status(500).json({ message: 'Erro no servidor ao buscar usuários.' });
+    }
 };
 
-// Associar um aluno a um professor
+// Apaga um usuário pelo ID
+exports.deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await pool.query('DELETE FROM users WHERE id = ?', [id]);
+        res.status(200).json({ message: 'Usuário apagado com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao apagar usuário:', error);
+        res.status(500).json({ message: 'Erro no servidor ao apagar usuário.' });
+    }
+};
+
+// Edita os dados de um usuário
+exports.editUser = async (req, res) => {
+    const { id } = req.params;
+    const { name, email, role } = req.body;
+    try {
+        await pool.query(
+            'UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?',
+            [name, email, role, id]
+        );
+        res.status(200).json({ message: 'Usuário atualizado com sucesso.' });
+    } catch (error) {
+        console.error('Erro ao editar usuário:', error);
+        res.status(500).json({ message: 'Erro no servidor ao editar usuário.' });
+    }
+};
+
+// Busca os alunos de um professor específico
+exports.getStudentsByTeacher = async (req, res) => {
+    try {
+        const { teacherId } = req.params;
+        const [students] = await pool.query('SELECT id, name, email FROM users WHERE teacher_id = ? AND role = "ALUNO"', [teacherId]);
+        res.json(students);
+    } catch (error) {
+        console.error('Erro ao buscar alunos do professor:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
+};
+
+// Vincula um aluno a um professor
 exports.assignTeacherToStudent = async (req, res) => {
-  const { studentId, teacherId } = req.body;
-
-  if (!studentId || !teacherId) {
-    return res.status(400).json({ message: 'ID do aluno e do professor são obrigatórios.' });
-  }
-
-  try {
-    await pool.query(
-      'UPDATE users SET teacher_id = ? WHERE id = ? AND role = "ALUNO"',
-      [teacherId, studentId]
-    );
-    res.json({ message: 'Professor associado ao aluno com sucesso!' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Erro no servidor' });
-  }
+    const { studentId, teacherId } = req.body;
+    try {
+        // Se teacherId for uma string vazia do frontend, converte para null
+        const teacherToAssign = teacherId || null;
+        await pool.query('UPDATE users SET teacher_id = ? WHERE id = ?', [teacherToAssign, studentId]);
+        res.status(200).json({ message: 'Professor vinculado ao aluno com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao vincular professor:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
 };
