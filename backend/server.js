@@ -9,6 +9,8 @@ const userRoutes = require('./src/routes/userRoutes');
 const adminRoutes = require('./src/routes/adminRoutes');
 const taskRoutes = require('./src/routes/taskRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
+const scheduleRoutes = require('./src/routes/scheduleRoutes');
+const attendanceRoutes = require('./src/routes/attendanceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +22,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/chat', chatRoutes); 
+app.use('/api/schedules', scheduleRoutes); 
+app.use('/api/attendance', attendanceRoutes);  
 
 const startServer = async () => {
   try {
