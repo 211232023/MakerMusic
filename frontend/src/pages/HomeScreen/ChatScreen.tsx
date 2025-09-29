@@ -1,76 +1,106 @@
-import React, { useState, useRef, useEffect } from "react";
-import { 
-  View, Text, TextInput, TouchableOpacity, FlatList, 
-  StyleSheet, KeyboardAvoidingView, Platform, ListRenderItemInfo 
-} from "react-native";
-import { useUser } from "../src/UserContext";
+import React, { useState, useCallback, useRef } from 'react';
+import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform, Alert } from 'react-native';
+import { useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
+import { useUser } from '../src/UserContext';
+import { getChatHistory, sendMessage } from '../../services/api';
+import { RootStackParamList } from '../src/types/navigation';
 
-type Message = { 
-  id: string; 
-  sender: "Aluno" | "Professor"; 
-  text: string;
+type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
+
+type Message = {
+  id: string;
+  sender_id: number;
+  message_text: string;
+  sent_at: string;
 };
 
-export default function Chat() {
-  const { user } = useUser();
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", sender: "Professor", text: "Olá, turma! Alguma dúvida?" },
-    { id: "2", sender: "Aluno", text: "Olá, professor! Estou com dúvida sobre a escala maior." },
-  ]);
-  const [text, setText] = useState("");
-  const flatListRef = useRef<FlatList<Message>>(null);
+export default function ChatScreen() {
+  const route = useRoute<ChatScreenRouteProp>();
+  const { user, token } = useUser();
+  const { otherUserId, otherUserName } = route.params;
 
-  // Scroll automático ao enviar/receber mensagem
-  useEffect(() => {
-    flatListRef.current?.scrollToEnd({ animated: true });
-  }, [messages]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const flatListRef = useRef<FlatList>(null);
 
-  const sendMessage = () => {
-    if (!text.trim()) return;
+  const fetchHistory = useCallback(async () => {
+    if (token) {
+      try {
+        const history = await getChatHistory(otherUserId, token);
+        if (Array.isArray(history)) {
+          setMessages(history);
+        }
+      } catch (error) {
+        Alert.alert('Erro', 'Não foi possível carregar as mensagens.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  }, [token, otherUserId]);
 
-    const senderRole: "Aluno" | "Professor" = user?.role === "Aluno" ? "Aluno" : "Professor";
-    setMessages(prev => [...prev, { id: Date.now().toString(), sender: senderRole, text }]);
-    setText("");
+  useFocusEffect(useCallback(() => {
+    fetchHistory();
+  }, [fetchHistory]));
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || !token) return;
+
+    const messageText = newMessage;
+    setNewMessage(''); // Limpa o input imediatamente
+
+    const response = await sendMessage(otherUserId, messageText, token);
+
+    if (response.messageId) {
+      // Adiciona a nova mensagem à lista para uma atualização instantânea da UI
+      const sentMessage: Message = {
+        id: response.messageId.toString(),
+        sender_id: user!.id,
+        message_text: messageText,
+        sent_at: new Date().toISOString(),
+      };
+      setMessages(prev => [...prev, sentMessage]);
+    } else {
+      Alert.alert('Erro', response.message || 'Não foi possível enviar a mensagem.');
+      setNewMessage(messageText); // Devolve o texto ao input em caso de erro
+    }
   };
-
-  const renderMessage = ({ item }: ListRenderItemInfo<Message>) => {
-    const isCurrentUserMessage = item.sender === (user?.role === "Aluno" ? "Aluno" : "Professor");
-
-    return (
-      <View
-        style={[
-          styles.messageItem,
-          isCurrentUserMessage ? styles.myMessage : styles.otherMessage,
-        ]}
-      >
-        <Text style={styles.messageText}>{item.text}</Text>
-      </View>
-    );
-  };
+  
+  if (isLoading) {
+    return <ActivityIndicator style={{ flex: 1 }} size="large" color="#d4af37" />;
+  }
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
+      keyboardVerticalOffset={90}
     >
+      <Text style={styles.header}>{otherUserName}</Text>
       <FlatList
         ref={flatListRef}
         data={messages}
-        keyExtractor={item => item.id}
-        renderItem={renderMessage}
-        contentContainerStyle={styles.flatListContent}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={({ item }) => (
+          <View style={[
+            styles.messageBubble,
+            item.sender_id === user?.id ? styles.myMessage : styles.theirMessage
+          ]}>
+            <Text style={styles.messageText}>{item.message_text}</Text>
+          </View>
+        )}
+        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
       />
-
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Digite uma mensagem"
-          placeholderTextColor="#aaa"
-          value={text}
-          onChangeText={setText}
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder="Escreva uma mensagem..."
+          placeholderTextColor="#999"
         />
-        <TouchableOpacity style={styles.sendButton} onPress={sendMessage}>
+        <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
           <Text style={styles.sendButtonText}>Enviar</Text>
         </TouchableOpacity>
       </View>
@@ -79,43 +109,14 @@ export default function Chat() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1c1b1f", padding: 10 },
-  flatListContent: { flexGrow: 1, justifyContent: "flex-end" },
-  messageItem: {
-    padding: 12,
-    borderRadius: 15,
-    marginVertical: 4,
-    maxWidth: "80%",
-  },
-  myMessage: {
-    backgroundColor: "#d4af37",
-    alignSelf: "flex-end",
-    borderTopRightRadius: 0,
-  },
-  otherMessage: {
-    backgroundColor: "#f6e27f",
-    alignSelf: "flex-start",
-    borderTopLeftRadius: 0,
-  },
-  messageText: { color: "#1c1b1f", fontSize: 16 },
-  inputContainer: { flexDirection: "row", alignItems: "center", paddingTop: 10 },
-  input: {
-    flex: 1,
-    backgroundColor: "#333",
-    color: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    fontSize: 16,
-  },
-  sendButton: {
-    backgroundColor: "#d4af37",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 25,
-    marginLeft: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sendButtonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 16 },
+    container: { flex: 1, backgroundColor: '#1c1b1f' },
+    header: { color: '#f6e27f', fontSize: 22, fontWeight: 'bold', textAlign: 'center', padding: 15, backgroundColor: '#2a292e', marginTop: 40 },
+    messageBubble: { maxWidth: '80%', padding: 10, borderRadius: 15, marginVertical: 5, marginHorizontal: 10 },
+    myMessage: { backgroundColor: '#d4af37', alignSelf: 'flex-end' },
+    theirMessage: { backgroundColor: '#333', alignSelf: 'flex-start' },
+    messageText: { color: '#fff', fontSize: 16 },
+    inputContainer: { flexDirection: 'row', padding: 10, borderTopWidth: 1, borderTopColor: '#333', backgroundColor: '#2a292e' },
+    input: { flex: 1, backgroundColor: '#1c1b1f', color: '#fff', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, marginRight: 10 },
+    sendButton: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: 15 },
+    sendButtonText: { color: '#d4af37', fontWeight: 'bold', fontSize: 16 },
 });

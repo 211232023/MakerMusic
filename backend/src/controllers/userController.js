@@ -83,3 +83,19 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: 'Erro no servidor durante o login.' });
   }
 };
+
+exports.getMyTeacher = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT T.id, T.name FROM users S JOIN users T ON S.teacher_id = T.id WHERE S.id = ?',
+      [req.user.id]
+    );
+    if (rows.length > 0) {
+      res.json(rows[0]);
+    } else {
+      res.status(404).json({ message: 'Nenhum professor vinculado.' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};

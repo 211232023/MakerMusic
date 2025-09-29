@@ -2,7 +2,7 @@ import React, { createContext, useState, ReactNode, useContext, useEffect } from
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export type User = {
-  id: string;
+  id: number;
   email: string;
   name: string;
   role: "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO";

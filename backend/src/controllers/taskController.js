@@ -1,4 +1,6 @@
-const pool = require('../config/db');
+const { pool } = require('../config/db');
+
+console.log('Conteúdo do pool no taskController:', pool);
 
 // Cria uma nova tarefa para um aluno específico
 exports.createTask = async (req, res) => {
@@ -32,4 +34,45 @@ exports.getTasksByStudent = async (req, res) => {
         console.error('Erro ao buscar tarefas:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
     }
+};
+
+exports.updateTaskStatus = async (req, res) => {
+  const { taskId } = req.params;
+  const { completed } = req.body; // Esperamos receber { "completed": true }
+
+  // O ID do aluno vem do token para garantir que só o próprio aluno pode marcar a sua tarefa
+  const studentId = req.user.id;
+
+  if (typeof completed !== 'boolean') {
+    return res.status(400).json({ message: 'O estado "completed" é obrigatório e deve ser um booleano.' });
+  }
+
+  try {
+    // Primeiro, vamos garantir que a tarefa pertence mesmo a este aluno
+    const [tasks] = await pool.query('SELECT student_id FROM tasks WHERE id = ?', [taskId]);
+    
+    if (tasks.length === 0) {
+      return res.status(404).json({ message: 'Tarefa não encontrada.' });
+    }
+
+    if (tasks[0].student_id !== studentId) {
+      return res.status(403).json({ message: 'Não tem permissão para alterar esta tarefa.' });
+    }
+
+    // Agora, inserimos ou atualizamos o registo na tabela de submissões
+    // O comando `ON DUPLICATE KEY UPDATE` é uma forma eficiente de fazer um "upsert"
+    const completedAt = completed ? new Date() : null;
+    await pool.query(
+      `INSERT INTO task_submissions (task_id, student_id, completed, completed_at) 
+       VALUES (?, ?, ?, ?)
+       ON DUPLICATE KEY UPDATE completed = ?, completed_at = ?`,
+      [taskId, studentId, completed, completedAt, completed, completedAt]
+    );
+
+    res.status(200).json({ message: 'Tarefa atualizada com sucesso!' });
+
+  } catch (error) {
+    console.error('Erro ao atualizar tarefa:', error);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
 };

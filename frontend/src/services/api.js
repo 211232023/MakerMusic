@@ -1,5 +1,5 @@
 // ATENÇÃO: Substitua 'SEU_IP_AQUI' pelo endereço de IP da sua máquina!
-const BASE_URL = 'http://10.90.1.17:3000/api';
+const BASE_URL = 'http://10.90.1.104:3000/api';
 
 // Função para o registo de utilizadores
 export const registerUser = async (userData) => {
@@ -124,4 +124,59 @@ export const deleteUser = async (userId, token) => {
     console.error('Erro ao deletar utilizador:', error);
     return { message: 'Não foi possível ligar ao servidor.' };
   }
+};
+
+// Aluno marca uma tarefa como concluída
+export const updateTaskStatus = async (taskId, completed, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/tasks/${taskId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ completed }),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao atualizar status da tarefa:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
+  }
+};
+
+export const getChatHistory = async (otherUserId, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/chat/${otherUserId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar histórico do chat:', error);
+    return [];
+  }
+};
+
+// Envia uma nova mensagem de chat
+export const sendMessage = async (receiverId, messageText, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ receiverId, messageText }),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao enviar mensagem:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
+  }
+};
+
+export const getMyTeacher = async (token) => {
+  const response = await fetch(`${BASE_URL}/users/my-teacher`, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  return response.json();
 };

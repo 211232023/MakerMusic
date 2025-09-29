@@ -11,7 +11,7 @@ export default function ProfessorMenuScreen() {
 
   // O melhor local para este tipo de verificação é na navegação principal
   // Mas se for necessário aqui, o código fica mais robusto
-  if (userRole !== "Professor") {
+  if (userRole !== "PROFESSOR") {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
         <Text style={styles.title}>Acesso Negado</Text>

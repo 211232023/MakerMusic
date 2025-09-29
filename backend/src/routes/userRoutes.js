@@ -1,12 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/userController'); // Importa o controlador
+const userController = require('../controllers/userController');
 
-// POST /api/users/register
+// --- INÍCIO DA CORREÇÃO ---
+// Importar os middlewares que estavam em falta
+const authMiddleware = require('../middleware/authMiddleware');
+const authorize = require('../middleware/authorize');
+// --- FIM DA CORREÇÃO ---
+
+// Rota de registo (pública)
 router.post('/register', userController.registerUser);
 
-// POST /api/users/login
+// Rota de login (pública)
 router.post('/login', userController.loginUser);
 
+// Rota para um aluno buscar os dados do seu professor (protegida)
+router.get('/my-teacher', authMiddleware, authorize(['ALUNO']), userController.getMyTeacher);
 
 module.exports = router;

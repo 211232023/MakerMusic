@@ -3,19 +3,39 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../src/UserContext';
-// Importe os tipos do ficheiro central
 import { RootStackParamList } from '../src/types/navigation'; 
+import { getMyTeacher } from '../../services/api'; // Importar a nova função da API
 
-// Use o tipo importado para tipar a navegação
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { user, logout } = useUser(); 
+  // Adicionamos o 'token' para usar nas chamadas da API
+  const { user, logout, token } = useUser(); 
 
   const handleLogout = () => {
     Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
   };
+
+  // --- INÍCIO DA NOVA LÓGICA DO CHAT ---
+  const handleStudentChat = async () => {
+    if (token) {
+      try {
+        const teacher = await getMyTeacher(token);
+        if (teacher && teacher.id) {
+          // Navega para a tela de chat com os dados do professor
+          navigation.navigate('Chat', { otherUserId: teacher.id.toString(), otherUserName: teacher.name });
+        } else {
+          // Se a API não retornar um professor, mostra um alerta
+          Alert.alert('Nenhum professor encontrado', 'Você ainda não foi vinculado a um professor. Por favor, entre em contato com a administração.');
+        }
+      } catch (error) {
+        console.error("Erro ao buscar professor:", error);
+        Alert.alert('Erro', 'Não foi possível obter os dados do seu professor.');
+      }
+    }
+  };
+  // --- FIM DA NOVA LÓGICA DO CHAT ---
 
   return (
     <View style={styles.container}>
@@ -25,19 +45,23 @@ export default function HomeScreen() {
       </View>
 
       <View style={styles.buttonContainer}>
-        {/* Agora estas chamadas são totalmente tipadas e corretas */}
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen')}>
           <Text style={styles.buttonText}>Horários</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ChatScreen')}>
+
+        {/* O botão de Chat agora chama a nova função handleStudentChat */}
+        <TouchableOpacity style={styles.button} onPress={handleStudentChat}>
           <Text style={styles.buttonText}>Chat com Professor</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PymentsScreen')}>
           <Text style={styles.buttonText}>Financeiro</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TasksScreen')}>
-          <Text style={styles.buttonText}>Tarefas</Text>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentTasks')}>
+          <Text style={styles.buttonText}>Minhas Tarefas</Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
           <Text style={[styles.buttonText, styles.logoutButtonText]}>Sair</Text>
         </TouchableOpacity>

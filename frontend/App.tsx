@@ -20,7 +20,8 @@ import TasksScreen from './src/pages/HomeScreen/TasksScreen';
 import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
-
+import StudentTasksScreen from "./src/pages/StudentScreen/StudentTasksScreen";
+import TeacherChatListScreen from "./src/pages/TeacherScreen/TeacherChatListScreen";
 
 // Use os tipos importados para criar o navegador
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,6 +54,8 @@ function AppNavigator() {
           <Stack.Screen name="TasksScreen" component={TasksScreen} />
           <Stack.Screen name="PresencaScreen" component={PresencaScreen} />
           <Stack.Screen name="EntitiesScreen" component={EntitiesScreen} />
+          <Stack.Screen name="StudentTasks" component={StudentTasksScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="TeacherChatList" component={TeacherChatListScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

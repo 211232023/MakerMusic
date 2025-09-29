@@ -20,6 +20,10 @@ export type RootStackParamList = {
   PresencaScreen: undefined;
   EntitiesScreen: { entity: 'users' | 'schedules' | 'payments' };
   AssignTeacherScreen: undefined; 
+  StudentTasks: undefined;
+  TeacherChatList: undefined; // Para a lista de alunos do professor
+     // A rota 'Chat' já deve existir, mas confirme que ela aceita os parâmetros
+  Chat: { otherUserId: string; otherUserName: string; };
   
   // Adicione qualquer outra tela aqui
 };
