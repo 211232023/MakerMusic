@@ -2,60 +2,57 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { UserProvider, useUser } from './src/pages/src/UserContext';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-// Importe os tipos do ficheiro central
+// Telas de Autenticação
+import LoginScreen from './src/pages/HomeScreen/LoginSreen';
+import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
+
+// Telas Principais por Papel
+import HomeScreen from './src/pages/HomeScreen/HomeScreen';
+import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
+import AdminScreen from './src/pages/AdminScreen/AdminScreen';
+
+// Telas Específicas
+import StudentTasksScreen from './src/pages/StudentScreen/StudentTasksScreen';
+import TeacherTasksScreen from './src/pages/TeacherScreen/TasksScreen';
+import ChatScreen from './src/pages/HomeScreen/ChatScreen';
+import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScreen';
+import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
+import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
+
+// Telas Comuns
+import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
+import PymentsScreen from './src/pages/HomeScreen/PymentsScreen';
+// --- CORREÇÃO AQUI: Importar com o nome de ficheiro correto ---
+import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen'; 
+
 import { RootStackParamList } from './src/pages/src/types/navigation';
 
-// Importe todas as suas telas
-import LoginScreen from "./src/pages/HomeScreen/LoginSreen";
-import RegisterScreen from "./src/pages/HomeScreen/RegisterScreen";
-import HomeScreen from './src/pages/HomeScreen/HomeScreen';
-import TeacherScreen from "./src/pages/TeacherScreen/TeacherScreen";
-import AdminScreen from "./src/pages/AdminScreen/AdminScreen";
-import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
-import ChatScreen from './src/pages/HomeScreen/ChatScreen';
-import PymentsScreen from './src/pages/HomeScreen/PymentsScreen';
-import TasksScreen from './src/pages/HomeScreen/TasksScreen';
-import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen';
-import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
-import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
-import StudentTasksScreen from "./src/pages/StudentScreen/StudentTasksScreen";
-import TeacherChatListScreen from "./src/pages/TeacherScreen/TeacherChatListScreen";
-
-// Use os tipos importados para criar o navegador
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function AppNavigator() {
-  const { user, isLoading } = useUser();
-  
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#d4af37" />
-      </View>
-    );
-  }
+  const { user } = useUser();
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
         <>
-          {/* Telas Iniciais */}
-          {user.role === 'ALUNO' && <Stack.Screen name="HomeScreen" component={HomeScreen} />}
-          {user.role === 'PROFESSOR' && <Stack.Screen name="TeacherScreen" component={TeacherScreen} />}
-          {user.role === 'ADMIN' && <Stack.Screen name="AdminScreen" component={AdminScreen} />}
-
-          {/* Telas Secundárias */}
-          <Stack.Screen name="ManageUsersScreen" component={ManageUsersScreen} />
+          {/* Telas Iniciais de cada papel */}
+          {user.role === 'ALUNO' && <Stack.Screen name="Home" component={HomeScreen} />}
+          {user.role === 'PROFESSOR' && <Stack.Screen name="Teacher" component={TeacherScreen} />}
+          {user.role === 'ADMIN' && <Stack.Screen name="Admin" component={AdminScreen} />}
+          
+          {/* Telas acessíveis após o login */}
+          <Stack.Screen name="StudentTasks" component={StudentTasksScreen} />
+          <Stack.Screen name="TasksScreen" component={TeacherTasksScreen} />
+          <Stack.Screen name="TeacherChatList" component={TeacherChatListScreen} />
+          <Stack.Screen name="ManageUsers" component={ManageUsersScreen} />
+          <Stack.Screen name="Entities" component={EntitiesScreen} />
           <Stack.Screen name="HorariosScreen" component={HorariosScreen} />
-          <Stack.Screen name="ChatScreen" component={ChatScreen} />
           <Stack.Screen name="PymentsScreen" component={PymentsScreen} />
-          <Stack.Screen name="TasksScreen" component={TasksScreen} />
-          <Stack.Screen name="PresencaScreen" component={PresencaScreen} />
-          <Stack.Screen name="EntitiesScreen" component={EntitiesScreen} />
-          <Stack.Screen name="StudentTasks" component={StudentTasksScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="TeacherChatList" component={TeacherChatListScreen} options={{ headerShown: false }} />
+          {/* --- CORREÇÃO AQUI: Usar o nome de rota definido no navigation.ts --- */}
+          <Stack.Screen name="PresençaScreen" component={PresencaScreen} />
+          <Stack.Screen name="Chat" component={ChatScreen} />
         </>
       ) : (
         <>
@@ -76,12 +73,3 @@ export default function App() {
     </UserProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1c1b1f',
-  },
-});

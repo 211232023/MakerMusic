@@ -1,35 +1,22 @@
-import { NavigatorScreenParams } from '@react-navigation/native';
-import PaymentsScreen from '../../screens/screens/PaymentsScreen';
-
 export type RootStackParamList = {
-  // Telas de Autenticação
   Login: undefined;
   Register: undefined;
   
-  // Telas Principais por Perfil
-  HomeScreen: undefined;
-  TeacherScreen: undefined;
-  AdminScreen: undefined;
-  
-  // Telas Secundárias
-  ManageUsersScreen: undefined;
-  HorariosScreen: undefined;
-  ChatScreen: undefined;
-  PymentsScreen: undefined;
-  TasksScreen: undefined;
-  PresencaScreen: undefined;
-  EntitiesScreen: { entity: 'users' | 'schedules' | 'payments' };
-  AssignTeacherScreen: undefined; 
-  StudentTasks: undefined;
-  TeacherChatList: undefined; // Para a lista de alunos do professor
-     // A rota 'Chat' já deve existir, mas confirme que ela aceita os parâmetros
-  Chat: { otherUserId: string; otherUserName: string; };
-  
-  // Adicione qualquer outra tela aqui
-};
+  // Telas principais dos perfis
+  Home: undefined;
+  Teacher: undefined;
+  Admin: undefined;
 
-declare global {
-  namespace ReactNavigation {
-    interface RootParamList extends RootStackParamList {}
-  }
-}
+  // Telas de funcionalidades
+  HorariosScreen: undefined;
+  PymentsScreen: undefined;
+  StudentTasks: undefined;
+  TasksScreen: undefined; // Tela do professor para gerir tarefas
+  PresençaScreen: undefined; // Tela de presença do professor
+  ManageUsers: undefined; // Tela do admin para gerir utilizadores
+  Entities: undefined; // Tela do admin para ver entidades
+
+  // Telas de Chat
+  Chat: { otherUserId: string; otherUserName: string; };
+  TeacherChatList: undefined;
+};

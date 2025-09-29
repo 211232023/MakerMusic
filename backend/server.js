@@ -19,7 +19,7 @@ app.use(express.json());
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/tasks', taskRoutes);
-app.use('/api/chat', chatRoutes);
+app.use('/api/chat', chatRoutes); 
 
 const startServer = async () => {
   try {
