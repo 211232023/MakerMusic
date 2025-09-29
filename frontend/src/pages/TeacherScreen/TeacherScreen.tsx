@@ -35,7 +35,7 @@ export default function TeacherScreen({ navigation }: Props) {
         <Text style={styles.buttonText}>Lista de Presença</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TeacherChatList')}>
-        <Text style={styles.buttonText}>Conversar com Alunos</Text>
+          <Text style={styles.buttonText}>Conversar com Alunos</Text>
       </TouchableOpacity>
       
       <TouchableOpacity style={[styles.button, {backgroundColor: '#8B0000'}]} onPress={logout}>
