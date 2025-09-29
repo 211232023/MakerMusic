@@ -28,7 +28,22 @@ exports.createTask = async (req, res) => {
 exports.getTasksByStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const [tasks] = await pool.query('SELECT * FROM tasks WHERE student_id = ? ORDER BY created_at DESC', [studentId]);
+        
+        // Query melhorada com LEFT JOIN
+        const query = `
+            SELECT 
+                t.id, 
+                t.title, 
+                t.due_date, 
+                ts.completed IS TRUE AS completed 
+            FROM tasks t
+            LEFT JOIN task_submissions ts ON t.id = ts.task_id AND t.student_id = ts.student_id
+            WHERE t.student_id = ?
+            ORDER BY t.created_at DESC
+        `;
+        
+        const [tasks] = await pool.query(query, [studentId]);
+        
         res.json(tasks);
     } catch (error) {
         console.error('Erro ao buscar tarefas:', error);
