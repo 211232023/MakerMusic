@@ -5,7 +5,7 @@ import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-nativ
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types/navigation'; // Puxa a tipagem do arquivo central
 
-type Props = NativeStackScreenProps<RootStackParamList, 'AddScheduleScreen'>;
+type Props = NativeStackScreenProps<RootStackParamList, 'AddSchedule'>;
 
 export default function AddScheduleScreen({ navigation }: Props) {
     const [day, setDay] = useState('');
@@ -19,7 +19,7 @@ export default function AddScheduleScreen({ navigation }: Props) {
                 time,
             };
             // Navega de volta para a tela de horários passando o novo objeto como parâmetro
-            navigation.navigate('ScheduleScreen', { newSchedule });
+            navigation.navigate('HorariosScreen', { newSchedule });
         }
     };
 

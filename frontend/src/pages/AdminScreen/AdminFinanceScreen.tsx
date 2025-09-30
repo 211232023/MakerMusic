@@ -13,7 +13,7 @@ export default function AdminFinanceScreen() {
   const [students, setStudents] = useState<User[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
-  const [paymentDate, setPaymentDate] = useState(''); // AAAA-MM-DD
+  const [paymentDate, setPaymentDate] = useState(''); 
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchStudents = useCallback(async () => {
