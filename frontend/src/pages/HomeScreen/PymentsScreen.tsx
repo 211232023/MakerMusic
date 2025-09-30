@@ -6,7 +6,7 @@ import { getMyPayments } from '../../services/api';
 
 // --- CORREÇÃO AQUI ---
 // O caminho correto é ../../../assets/ para chegar à pasta 'assets' na raiz do frontend
-const fakeQrCode = require('../../../assets/fake-qr-code.png'); 
+const fakeQrCode = require('../../assets/fake-qr-code.png');
 
 type Payment = {
   id: number;
@@ -63,7 +63,7 @@ export default function PymentsScreen() {
             <View style={styles.paymentItem}>
               <View>
                 <Text style={styles.description}>{item.description}</Text>
-                <Text style={styles.amount}>R$ {item.amount.toFixed(2)}</Text>
+                <Text style={styles.amount}>R$ {typeof item.amount === 'number' ? item.amount.toFixed(2) : '0.00'}</Text>
                 <Text style={styles.date}>Vencimento: {new Date(item.payment_date).toLocaleDateString()}</Text>
               </View>
               <View style={{alignItems: 'center'}}>

@@ -43,20 +43,33 @@ exports.createOrUpdatePayment = async (req, res) => {
   }
 };
 
-// Aluno busca os seus pagamentos
 exports.getMyPayments = async (req, res) => {
-    const studentId = req.user.id;
-    try {
-        const [payments] = await pool.query(
-            `SELECT id, amount, description, payment_date, status 
-             FROM payments 
-             WHERE student_id = ? 
-             ORDER BY payment_date DESC`,
-            [studentId]
-        );
-        res.json(payments);
-    } catch (error) {
-        console.error('Erro ao buscar pagamentos:', error);
-        res.status(500).json({ message: 'Erro no servidor.' });
-    }
+  try {
+    const [payments] = await db.query('SELECT * FROM payments WHERE user_id = ?', [req.user.id]);
+
+    const formattedPayments = payments.map(payment => ({
+      ...payment,
+      amount: parseFloat(payment.amount) 
+    }));
+
+    res.json(formattedPayments);
+  } catch (error) {
+    console.error('Erro ao buscar pagamentos:', error);
+    res.status(500).send('Erro no servidor');
+  }
+};
+
+exports.getAllPayments = async (req, res) => {
+  try {
+    const [payments] = await db.query('SELECT p.*, u.name as user_name FROM payments p JOIN users u ON p.user_id = u.id');
+
+    const formattedPayments = payments.map(payment => ({
+        ...payment,
+        amount: parseFloat(payment.amount)
+    }));
+
+    res.json(formattedPayments);
+  } catch (error) {
+      res.status(500).json({ message: 'Erro ao buscar pagamentos' });
+  }
 };

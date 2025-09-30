@@ -1,20 +1,20 @@
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
-  
+
   // Telas principais dos perfis
   Home: undefined;
   Teacher: undefined;
   Admin: undefined;
 
   // Telas de funcionalidades
-  HorariosScreen: undefined;
+  HorariosScreen: { newSchedule?: { id: string; day: string; time: string } };
   PymentsScreen: undefined;
   StudentTasks: undefined;
-  TasksScreen: undefined; 
+  TasksScreen: undefined;
   PresençaScreen: undefined;
-  ManageUsers: undefined; 
-  Entities: undefined; 
+  ManageUsers: undefined;
+  Entities: undefined;
   AddSchedule: undefined;
   AdminFinance: undefined;
 
