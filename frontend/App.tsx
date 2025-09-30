@@ -19,11 +19,11 @@ import ChatScreen from './src/pages/HomeScreen/ChatScreen';
 import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScreen';
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
+import AddScheduleScreen from "./src/pages/TeacherScreen/AddScheduleScreen";
 
 // Telas Comuns
 import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
 import PymentsScreen from './src/pages/HomeScreen/PymentsScreen';
-// --- CORREÇÃO AQUI: Importar com o nome de ficheiro correto ---
 import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen'; 
 
 import { RootStackParamList } from './src/pages/src/types/navigation';
@@ -50,9 +50,9 @@ function AppNavigator() {
           <Stack.Screen name="Entities" component={EntitiesScreen} />
           <Stack.Screen name="HorariosScreen" component={HorariosScreen} />
           <Stack.Screen name="PymentsScreen" component={PymentsScreen} />
-          {/* --- CORREÇÃO AQUI: Usar o nome de rota definido no navigation.ts --- */}
           <Stack.Screen name="PresençaScreen" component={PresencaScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

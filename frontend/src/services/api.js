@@ -1,5 +1,5 @@
 // ATENÇÃO: Substitua 'SEU_IP_AQUI' pelo endereço de IP da sua máquina!
-const BASE_URL = 'http://10.90.1.104:3000/api';
+const BASE_URL = 'http://10.90.1.239:3000/api';
 
 // Função para o registo de utilizadores
 export const registerUser = async (userData) => {
@@ -179,4 +179,65 @@ export const getMyTeacher = async (token) => {
     headers: { 'Authorization': `Bearer ${token}` }
   });
   return response.json();
+};
+
+export const getMySchedules = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/schedules/my-schedules`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar horários:', error);
+    return [];
+  }
+};
+
+// Professor busca a agenda de um dia específico
+export const getSchedulesForTeacherByDay = async (dayOfWeek, token) => {
+    try {
+        const response = await fetch(`${BASE_URL}/schedules/teacher/day/${dayOfWeek}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        return response.json();
+    } catch (error) {
+        console.error('Erro ao buscar horários do professor:', error);
+        return [];
+    }
+};
+
+// Professor marca a presença de um aluno
+export const markAttendance = async (attendanceData, token) => {
+    try {
+        const response = await fetch(`${BASE_URL}/attendance`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(attendanceData)
+        });
+        return response.json();
+    } catch (error) {
+        console.error('Erro ao marcar presença:', error);
+        return { message: 'Não foi possível ligar ao servidor.' };
+    }
+};
+
+// Professor cria um novo horário
+export const createSchedule = async (scheduleData, token) => {
+    try {
+        const response = await fetch(`${BASE_URL}/schedules`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(scheduleData)
+        });
+        return response.json();
+    } catch (error) {
+        console.error('Erro ao criar horário:', error);
+        return { message: 'Não foi possível ligar ao servidor.' };
+    }
 };

@@ -1,21 +1,24 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../src/UserContext';
+import { RootStackParamList } from '../src/types/navigation';
 
-type Props = {
-  navigation: any;
-};
+type TeacherScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function TeacherScreen({ navigation }: Props) {
+export default function TeacherScreen() {
+  const navigation = useNavigation<TeacherScreenNavigationProp>();
   const { user, logout } = useUser();
 
-  // A CORREÇÃO ESTÁ AQUI: comparar com 'PROFESSOR' em vez de 'Professor'
+  const handleLogout = () => {
+    Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
+  };
+
   if (user?.role !== 'PROFESSOR') {
     return (
       <View style={styles.container}>
         <Text style={styles.errorText}>Acesso Negado</Text>
-        <Text style={styles.errorSubtitle}>Você não tem permissão para visualizar esta tela.</Text>
         <TouchableOpacity style={styles.button} onPress={logout}>
           <Text style={styles.buttonText}>Voltar ao Login</Text>
         </TouchableOpacity>
@@ -31,21 +34,24 @@ export default function TeacherScreen({ navigation }: Props) {
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TasksScreen')}>
         <Text style={styles.buttonText}>Gerenciar Tarefas</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PresencaScreen')}>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AddSchedule')}>
+        <Text style={styles.buttonText}>Criar Horário de Aula</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PresençaScreen')}>
         <Text style={styles.buttonText}>Lista de Presença</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('TeacherChatList')}>
           <Text style={styles.buttonText}>Conversar com Alunos</Text>
       </TouchableOpacity>
       
-      <TouchableOpacity style={[styles.button, {backgroundColor: '#8B0000'}]} onPress={logout}>
+      {/* Botão de Sair agora usa o estilo 'logoutButton' */}
+      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
           <Text style={styles.buttonText}>Sair</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
-// ... (os seus estilos permanecem iguais)
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -81,14 +87,13 @@ const styles = StyleSheet.create({
     errorText: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: '#FF6347', // Tomato red
+        color: '#FF6347',
         textAlign: 'center',
-    },
-    errorSubtitle: {
-        fontSize: 16,
-        color: '#fff',
-        textAlign: 'center',
-        marginTop: 10,
         marginBottom: 30,
+    },
+    // --- ESTILO ATUALIZADO/ADICIONADO ---
+    logoutButton: {
+        backgroundColor: '#8B0000',
+        marginTop: 20, // Garante o mesmo espaçamento da HomeScreen
     },
 });

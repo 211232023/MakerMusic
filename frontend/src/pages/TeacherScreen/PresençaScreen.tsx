@@ -1,60 +1,139 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { useUser } from "../src/UserContext";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { useUser } from '../src/UserContext';
+import { getSchedulesForTeacherByDay, markAttendance } from '../../services/api';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
-type Student = {
-  id: string;
-  name: string;
-  class: string;
+type ScheduleItem = {
+  id: number;
+  start_time: string;
+  end_time: string;
+  student_id: number;
+  student_name: string;
+  attendance_status: 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADO' | null;
 };
 
-const sampleStudents: Student[] = [
-  { id: "1", name: "Maria Oliveira", class: "Piano Básico" },
-  { id: "2", name: "João Santos", class: "Violão Intermediário" },
-  { id: "3", name: "Ana Pereira", class: "Bateria Avançada" },
-];
+const DAYS_OF_WEEK = ['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO'];
 
-export default function EstudantesScreen() {
-  const { user } = useUser();
-  const userRole = user?.role;
+export default function PresencaScreen() {
   const navigation = useNavigation();
-  const [students, setStudents] = useState<Student[]>(sampleStudents);
+  const { user, token } = useUser();
+  const [selectedDay, setSelectedDay] = useState<string>(DAYS_OF_WEEK[0]);
+  const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchSchedules = useCallback(async (day: string) => {
+    if (user && token) {
+      setIsLoading(true);
+      const data = await getSchedulesForTeacherByDay(day, token);
+      if(Array.isArray(data)) {
+        setSchedules(data);
+      }
+      setIsLoading(false);
+    }
+  }, [user, token]);
+
+  useFocusEffect(useCallback(() => {
+    fetchSchedules(selectedDay);
+  }, [selectedDay, fetchSchedules]));
+
+  const handleMarkAttendance = async (scheduleId: number, studentId: number, status: 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADO') => {
+    if (!token) return;
+
+    const today = new Date().toISOString().split('T')[0]; // Formato AAAA-MM-DD
+
+    const attendanceData = {
+        scheduleId,
+        studentId,
+        classDate: today,
+        status,
+    };
+    
+    const response = await markAttendance(attendanceData, token);
+    if (response.message) {
+        // Atualiza a UI localmente para feedback instantâneo
+        setSchedules(prev => prev.map(item => 
+            item.id === scheduleId ? { ...item, attendance_status: status } : item
+        ));
+    } else {
+        Alert.alert("Erro", "Não foi possível registar a presença.");
+    }
+  };
+  
+  const renderScheduleItem = ({ item }: { item: ScheduleItem }) => (
+    <View style={styles.scheduleItem}>
+      <Text style={styles.studentName}>{item.student_name}</Text>
+      <Text style={styles.timeText}>{`${item.start_time.substring(0,5)} - ${item.end_time.substring(0,5)}`}</Text>
+      <View style={styles.attendanceButtons}>
+        {['PRESENTE', 'AUSENTE', 'JUSTIFICADO'].map((status) => (
+          <TouchableOpacity
+            key={status}
+            style={[
+              styles.statusButton,
+              item.attendance_status === status && styles.selectedStatusButton,
+              status === 'PRESENTE' && styles.presente,
+              status === 'AUSENTE' && styles.ausente,
+              status === 'JUSTIFICADO' && styles.justificado,
+            ]}
+            onPress={() => handleMarkAttendance(item.id, item.student_id, status as any)}
+          >
+            <Text style={styles.statusButtonText}>{status[0]}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Estudantes</Text>
-        {userRole === "Admin" && (
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => Alert.alert("Funcionalidade futura", "Adicionar novo estudante")}
+      <Text style={styles.title}>Registo de Presença</Text>
+      <View style={styles.daySelector}>
+        {DAYS_OF_WEEK.map(day => (
+          <TouchableOpacity 
+            key={day} 
+            style={[styles.dayButton, selectedDay === day && styles.selectedDayButton]} 
+            onPress={() => setSelectedDay(day)}
           >
-            <Text style={styles.addButtonText}>+</Text>
+            <Text style={styles.dayButtonText}>{day.substring(0,3)}</Text>
           </TouchableOpacity>
-        )}
+        ))}
       </View>
-      <FlatList
-        data={students}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.studentItem}>
-            <Text style={styles.studentName}>{item.name}</Text>
-            <Text style={styles.studentClass}>{item.class}</Text>
-          </View>
-        )}
-      />
+
+      {isLoading ? (
+        <ActivityIndicator size="large" color="#d4af37" />
+      ) : (
+        <FlatList
+          data={schedules}
+          renderItem={renderScheduleItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma aula agendada para este dia.</Text>}
+        />
+      )}
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#1c1b1f", padding: 20 },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 20 },
-  title: { fontSize: 28, fontWeight: "bold", color: "#f6e27f" },
-  addButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: "#d4af37", justifyContent: "center", alignItems: "center" },
-  addButtonText: { color: "#1c1b1f", fontSize: 24, fontWeight: "bold" },
-  studentItem: { backgroundColor: "#333", padding: 15, borderRadius: 10, marginBottom: 10 },
-  studentName: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  studentClass: { color: "#aaa", fontSize: 14, marginTop: 4 },
+    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    daySelector: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
+    dayButton: { padding: 10, borderRadius: 20, backgroundColor: '#333' },
+    selectedDayButton: { backgroundColor: '#d4af37' },
+    dayButtonText: { color: '#fff', fontWeight: 'bold' },
+    scheduleItem: { backgroundColor: '#2a292e', padding: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    studentName: { color: '#fff', fontSize: 16, flex: 1 },
+    timeText: { color: '#ccc', fontSize: 14 },
+    attendanceButtons: { flexDirection: 'row', marginLeft: 10 },
+    statusButton: { width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#555' },
+    selectedStatusButton: { borderWidth: 2, borderColor: '#fff' },
+    presente: { backgroundColor: 'green' },
+    ausente: { backgroundColor: 'red' },
+    justificado: { backgroundColor: 'orange' },
+    statusButtonText: { color: '#fff', fontWeight: 'bold' },
+    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 40 },
+    backButton: { marginTop: 20, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16 },
 });

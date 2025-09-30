@@ -11,10 +11,11 @@ export type RootStackParamList = {
   HorariosScreen: undefined;
   PymentsScreen: undefined;
   StudentTasks: undefined;
-  TasksScreen: undefined; // Tela do professor para gerir tarefas
-  PresençaScreen: undefined; // Tela de presença do professor
-  ManageUsers: undefined; // Tela do admin para gerir utilizadores
-  Entities: undefined; // Tela do admin para ver entidades
+  TasksScreen: undefined; 
+  PresençaScreen: undefined;
+  ManageUsers: undefined; 
+  Entities: undefined; 
+  AddSchedule: undefined;
 
   // Telas de Chat
   Chat: { otherUserId: string; otherUserName: string; };

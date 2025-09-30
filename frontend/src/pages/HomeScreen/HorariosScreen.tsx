@@ -1,100 +1,113 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-
-// Importe os tipos do ficheiro central
+import { useUser } from '../src/UserContext';
 import { RootStackParamList } from '../src/types/navigation'; 
+import { getMyTeacher } from '../../services/api';
 
-// Crie um tipo para os dados de exemplo
-type Schedule = {
-  id: string;
-  materia: string;
-  professor: string;
-  dia: string;
-  horario: string;
-};
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-const DUMMY_SCHEDULES: Schedule[] = [
-  { id: '1', materia: 'Violão', professor: 'Carlos', dia: 'Segunda-feira', horario: '14:00 - 15:00' },
-  { id: '2', materia: 'Piano', professor: 'Ana', dia: 'Terça-feira', horario: '10:00 - 11:00' },
-  { id: '3', materia: 'Canto', professor: 'Mariana', dia: 'Quarta-feira', horario: '16:00 - 17:00' },
-];
+export default function HomeScreen() {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { user, logout, token } = useUser(); 
 
-// Use o tipo do nosso ficheiro de navegação para a propriedade de navegação
-type HorariosScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'HorariosScreen'>;
+  const handleLogout = () => {
+    Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
+  };
 
-// O componente agora não precisa de receber "props" diretamente,
-// pois usamos o hook "useNavigation"
-export default function HorariosScreen() {
-  const navigation = useNavigation<HorariosScreenNavigationProp>();
-
-  const renderItem = ({ item }: { item: Schedule }) => (
-    <View style={styles.scheduleItem}>
-      <Text style={styles.itemMateria}>{item.materia}</Text>
-      <Text style={styles.itemDetails}>{item.professor} - {item.dia} às {item.horario}</Text>
-    </View>
-  );
+  const handleStudentChat = async () => {
+    if (token) {
+      try {
+        const teacher = await getMyTeacher(token);
+        if (teacher && teacher.id) {
+          navigation.navigate('Chat', { otherUserId: teacher.id.toString(), otherUserName: teacher.name });
+        } else {
+          Alert.alert('Nenhum professor encontrado', 'Você ainda não foi vinculado a um professor.');
+        }
+      } catch (error) {
+        console.error("Erro ao buscar professor:", error);
+        Alert.alert('Erro', 'Não foi possível obter os dados do seu professor.');
+      }
+    }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Meus Horários</Text>
-      <FlatList
-        data={DUMMY_SCHEDULES}
-        renderItem={renderItem}
-        keyExtractor={item => item.id}
-        style={styles.list}
-      />
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.title}>MakerMusic</Text>
+          <Text style={styles.userName}>Olá, {user?.name}</Text>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen')}>
+            <Text style={styles.buttonText}>Horários</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={handleStudentChat}>
+            <Text style={styles.buttonText}>Chat com Professor</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PymentsScreen')}>
+            <Text style={styles.buttonText}>Financeiro</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentTasks')}>
+            <Text style={styles.buttonText}>Minhas Tarefas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+            <Text style={[styles.buttonText, styles.logoutButtonText]}>Sair</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#1c1b1f',
-    padding: 20,
-    alignItems: 'center',
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: '#f6e27f',
-    marginBottom: 30,
-    marginTop: 40,
+  container: { 
+    flex: 1, 
+    padding: 20, 
+    justifyContent: 'space-between' 
   },
-  list: {
-    width: '100%',
+  header: { 
+    alignItems: 'center', 
+    // O paddingTop foi movido para o container para melhor alinhamento
   },
-  scheduleItem: {
-    backgroundColor: '#333',
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 15,
+  title: { 
+    color: '#f6e27f', 
+    fontSize: 28, // Ajustado para 28 para corresponder à tela do professor
+    fontWeight: 'bold' 
   },
-  itemMateria: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#fff',
+  userName: { 
+    color: '#fff', 
+    fontSize: 18, 
+    marginTop: 10 
   },
-  itemDetails: {
-    fontSize: 14,
-    color: '#ccc',
-    marginTop: 5,
+  buttonContainer: { 
+    width: '100%', 
+    marginBottom: 30 
   },
-  backButton: {
-    marginTop: 20,
-    backgroundColor: '#d4af37',
-    paddingVertical: 10,
-    paddingHorizontal: 30,
-    borderRadius: 10,
+  button: { 
+    backgroundColor: '#333', 
+    padding: 20, 
+    borderRadius: 10, 
+    width: '100%', 
+    alignItems: 'center', 
+    marginBottom: 15 
   },
-  backButtonText: {
-    color: '#1c1b1f',
-    fontSize: 16,
-    fontWeight: 'bold',
+  buttonText: { 
+    color: '#fff', 
+    fontWeight: 'bold', 
+    fontSize: 18 
+  },
+  logoutButton: { 
+    backgroundColor: '#8B0000', 
+    marginTop: 20 
+  },
+  logoutButtonText: { 
+    color: '#fff' 
   },
 });
