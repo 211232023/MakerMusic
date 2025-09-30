@@ -20,6 +20,7 @@ import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScre
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
 import AddScheduleScreen from "./src/pages/TeacherScreen/AddScheduleScreen";
+import AdminFinanceScreen from './src/pages/AdminScreen/AdminFinanceScreen';
 
 // Telas Comuns
 import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
@@ -53,6 +54,7 @@ function AppNavigator() {
           <Stack.Screen name="PresençaScreen" component={PresencaScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AdminFinance" component={AdminFinanceScreen} options={{ headerShown: false }} />
         </>
       ) : (
         <>

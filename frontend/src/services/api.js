@@ -241,3 +241,33 @@ export const createSchedule = async (scheduleData, token) => {
         return { message: 'Não foi possível ligar ao servidor.' };
     }
 };
+
+export const createOrUpdatePayment = async (paymentData, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/finance`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(paymentData),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao registar pagamento:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
+  }
+};
+
+// Aluno busca os seus pagamentos
+export const getMyPayments = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/finance/my-payments`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar pagamentos:', error);
+    return [];
+  }
+};

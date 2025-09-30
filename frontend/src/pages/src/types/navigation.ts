@@ -16,6 +16,7 @@ export type RootStackParamList = {
   ManageUsers: undefined; 
   Entities: undefined; 
   AddSchedule: undefined;
+  AdminFinance: undefined;
 
   // Telas de Chat
   Chat: { otherUserId: string; otherUserName: string; };

@@ -25,11 +25,10 @@ export default function AdminScreen() {
         <Text style={styles.buttonText}>Ver Utilizadores</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => { /* Navegação para Gerir Aulas/Horários */ }}>
-        <Text style={styles.buttonText}>Gerir Aulas</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AdminFinance')}>
+        <Text style={styles.buttonText}>Gerir Financeiro</Text>
       </TouchableOpacity>
 
-      {/* --- CORREÇÃO 2: Nome da rota --- */}
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ManageUsers')}>
         <Text style={styles.buttonText}>Vincular Aluno/Professor</Text>
       </TouchableOpacity>
