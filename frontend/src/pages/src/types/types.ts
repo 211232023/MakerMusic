@@ -24,6 +24,7 @@ export type RootStackParamList = {
   ScheduleScreen: undefined;
   AttendanceScreen: undefined;
   TeacherScreen: undefined;
+  AddScheduleScreen: undefined;
 };
 
 // Extensão para o React Navigation
