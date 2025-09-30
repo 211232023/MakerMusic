@@ -25,7 +25,11 @@ export default function AdminFinanceScreen() {
     }
   }, [token]);
 
-  useFocusEffect(fetchStudents);
+  useFocusEffect(
+    useCallback(() => {
+      fetchStudents();
+    }, [fetchStudents]) 
+  );
 
   const handleSavePayment = async () => {
     if (!selectedStudentId || !amount || !paymentDate) {

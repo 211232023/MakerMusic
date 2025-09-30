@@ -4,8 +4,9 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyPayments } from '../../services/api';
 
-// Imagem de QR Code fictícia - coloque-a na sua pasta `assets`
-const fakeQrCode = require('../../assets/fake-qr-code.png'); 
+// --- CORREÇÃO AQUI ---
+// O caminho correto é ../../../assets/ para chegar à pasta 'assets' na raiz do frontend
+const fakeQrCode = require('../../../assets/fake-qr-code.png'); 
 
 type Payment = {
   id: number;
@@ -32,7 +33,11 @@ export default function PymentsScreen() {
     }
   }, [token]);
 
-  useFocusEffect(fetchPayments);
+  useFocusEffect(
+    useCallback(() => {
+      fetchPayments();
+    }, [fetchPayments])
+  );
 
   const handlePay = (payment: Payment) => {
     setSelectedPayment(payment);
@@ -40,9 +45,9 @@ export default function PymentsScreen() {
   };
   
   const getStatusStyle = (status: Payment['status']) => {
-    if (status === 'PAGO') return { color: 'green' };
-    if (status === 'ATRASADO') return { color: 'red' };
-    return { color: 'orange' };
+    if (status === 'PAGO') return { color: '#2E8B57' }; // Verde Mar
+    if (status === 'ATRASADO') return { color: '#FF6347' }; // Tomate
+    return { color: '#FFA500' }; // Laranja
   };
 
   return (
@@ -75,7 +80,6 @@ export default function PymentsScreen() {
         />
       )}
       
-      {/* Modal do PIX */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -87,7 +91,7 @@ export default function PymentsScreen() {
             <Text style={styles.modalTitle}>Pagar com Pix</Text>
             <Image source={fakeQrCode} style={styles.qrCode} />
             <Text style={styles.pixKeyLabel}>Chave Pix (Copia e Cola):</Text>
-            <Text style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
+            <Text selectable style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
             <TouchableOpacity style={styles.closeButton} onPress={() => {
                 setModalVisible(false);
                 Alert.alert("Pagamento Simulado", "Numa aplicação real, o status seria atualizado após a confirmação do pagamento.");
@@ -122,9 +126,9 @@ const styles = StyleSheet.create({
     modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.7)' },
     modalView: { width: '85%', backgroundColor: '#333', borderRadius: 20, padding: 25, alignItems: 'center' },
     modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#f6e27f', marginBottom: 15 },
-    qrCode: { width: 200, height: 200, marginBottom: 20 },
+    qrCode: { width: 200, height: 200, marginBottom: 20, borderRadius: 8, backgroundColor: 'white' },
     pixKeyLabel: { color: '#ccc', fontSize: 14 },
     pixKey: { color: '#fff', fontSize: 12, padding: 10, backgroundColor: '#222', borderRadius: 5, marginVertical: 10, textAlign: 'center' },
-    closeButton: { backgroundColor: '#8B0000', padding: 12, borderRadius: 10, marginTop: 20 },
+    closeButton: { backgroundColor: '#8B0000', padding: 12, borderRadius: 10, marginTop: 20, minWidth: 100, alignItems: 'center' },
     closeButtonText: { color: '#fff', fontWeight: 'bold' },
 });
