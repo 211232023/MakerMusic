@@ -1,5 +1,5 @@
 // ATENÇÃO: Substitua 'SEU_IP_AQUI' pelo endereço de IP da sua máquina!
-const BASE_URL = 'http://10.90.1.239:3000/api';
+const BASE_URL = 'http://10.90.0.169:3000/api';
 
 // Função para o registo de utilizadores
 export const registerUser = async (userData) => {

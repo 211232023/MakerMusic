@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Button } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import RNPickerSelect from 'react-native-picker-select'; // MUDANÇA: Importe o RNPickerSelect
 import { useUser } from '../src/UserContext';
 import { getAllUsers, assignTeacherToStudent } from '../../services/api';
 
-// Definimos o tipo User aqui para incluir teacher_id
+// A definição do tipo User permanece a mesma
 type User = {
   id: string;
   name: string;
@@ -18,8 +18,7 @@ export default function ManageUsersScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
-  // --- MUDANÇA 1: Usar string vazia em vez de null ---
-  const [selectedTeacher, setSelectedTeacher] = useState<string>("");
+  const [selectedTeacher, setSelectedTeacher] = useState<string>('');
 
   const fetchUsers = async () => {
     if (token) {
@@ -36,13 +35,11 @@ export default function ManageUsersScreen() {
 
   const openAssignModal = (student: User) => {
     setSelectedStudent(student);
-    // --- MUDANÇA 2: Resetar para string vazia ---
-    setSelectedTeacher(""); 
+    setSelectedTeacher('');
     setModalVisible(true);
   };
 
   const handleAssignTeacher = async () => {
-    // A verificação !selectedTeacher continua a funcionar com a string vazia
     if (!selectedStudent || !selectedTeacher || !token) {
       Alert.alert('Erro', 'Selecione um aluno e um professor.');
       return;
@@ -60,6 +57,12 @@ export default function ManageUsersScreen() {
   };
 
   const teachers = users.filter(u => u.role === 'PROFESSOR');
+  
+  // MUDANÇA: Formate os dados para o RNPickerSelect
+  const teacherItems = teachers.map(teacher => ({
+    label: teacher.name,
+    value: teacher.id,
+  }));
 
   return (
     <View style={styles.container}>
@@ -89,17 +92,14 @@ export default function ManageUsersScreen() {
             <Text style={styles.modalTitle}>Vincular Professor a</Text>
             <Text style={styles.modalStudentName}>{selectedStudent?.name}</Text>
             
-            <Picker
-              selectedValue={selectedTeacher}
-              style={styles.picker}
-              onValueChange={(itemValue: string) => setSelectedTeacher(itemValue)}
-            >
-              {/* --- MUDANÇA 3: Usar string vazia como valor do item "placeholder" --- */}
-              <Picker.Item label="Selecione um professor..." value="" />
-              {teachers.map((teacher) => (
-                <Picker.Item key={teacher.id} label={teacher.name} value={teacher.id} />
-              ))}
-            </Picker>
+            {/* MUDANÇA: Substitua o Picker pelo RNPickerSelect */}
+            <RNPickerSelect
+              onValueChange={(value) => setSelectedTeacher(value)}
+              items={teacherItems}
+              style={pickerSelectStyles}
+              placeholder={{ label: 'Selecione um professor...', value: null }}
+              value={selectedTeacher}
+            />
 
             <Button title="Salvar Vinculação" onPress={handleAssignTeacher} color="#d4af37" />
             <View style={{ marginTop: 10 }}>
@@ -112,7 +112,7 @@ export default function ManageUsersScreen() {
   );
 }
 
-// Estilos
+// Estilos originais
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
     title: { fontSize: 24, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, textAlign: 'center' },
@@ -125,5 +125,34 @@ const styles = StyleSheet.create({
     modalView: { width: '80%', backgroundColor: '#333', borderRadius: 20, padding: 35, alignItems: 'center' },
     modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
     modalStudentName: { fontSize: 18, color: '#f6e27f', marginBottom: 15 },
-    picker: { width: '100%', height: 150, color: '#fff', backgroundColor: '#444', marginBottom: 20 },
+});
+
+// MUDANÇA: Adicione estilos para o RNPickerSelect (você pode customizar como quiser)
+const pickerSelectStyles = StyleSheet.create({
+  inputIOS: {
+    fontSize: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: 'gray',
+    borderRadius: 4,
+    color: 'white',
+    paddingRight: 30, // para garantir que o texto não fique atrás do ícone
+    backgroundColor: '#444',
+    marginBottom: 20,
+    width: 250
+  },
+  inputAndroid: {
+    fontSize: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderWidth: 0.5,
+    borderColor: 'purple',
+    borderRadius: 8,
+    color: 'white',
+    paddingRight: 30, // para garantir que o texto não fique atrás do ícone
+    backgroundColor: '#444',
+    marginBottom: 20,
+    width: 250
+  },
 });
