@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../src/UserContext';
@@ -33,38 +33,45 @@ export default function HomeScreen() {
   };
 
   return (
-    // O container principal agora centraliza todo o conteúdo
-    <View style={styles.container}>
-      <Text style={styles.title}>MakerMusic</Text>
-      <Text style={styles.userName}>Olá, {user?.name}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>MakerMusic</Text>
+        <Text style={styles.userName}>Olá, {user?.name}</Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen')}>
-        <Text style={styles.buttonText}>Meus Horários</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleStudentChat}>
-        <Text style={styles.buttonText}>Chat com Professor</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PymentsScreen')}>
-        <Text style={styles.buttonText}>Financeiro</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentTasks')}>
-        <Text style={styles.buttonText}>Minhas Tarefas</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-        <Text style={[styles.buttonText, styles.logoutButtonText]}>Sair</Text>
-      </TouchableOpacity>
-    </View>
+        {/* --- CORREÇÃO: Botões definidos explicitamente para garantir a segurança de tipo --- */}
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen')}>
+          <Text style={styles.buttonText}>Meus Horários</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentTasks')}>
+          <Text style={styles.buttonText}>Minhas Tarefas</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={handleStudentChat}>
+          <Text style={styles.buttonText}>Chat com Professor</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('PymentsScreen')}>
+          <Text style={styles.buttonText}>Financeiro</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
+          <Text style={[styles.buttonText, styles.logoutButtonText]}>Sair</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
-// --- ESTILOS ATUALIZADOS ---
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
     backgroundColor: '#1c1b1f',
+  },
+  container: {
+    flex: 1,
     alignItems: 'center',
-    justifyContent: 'center', // Esta é a principal mudança
+    justifyContent: 'center',
     padding: 20,
   },
   title: {
@@ -76,7 +83,7 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     color: '#fff',
-    marginBottom: 40, // Espaçamento entre o nome e o primeiro botão
+    marginBottom: 40,
   },
   button: {
     backgroundColor: '#333',
@@ -93,7 +100,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     backgroundColor: '#8B0000',
-    marginTop: 20, // Espaçamento extra para o botão de sair
+    marginTop: 20,
   },
   logoutButtonText: {
     color: '#fff',
