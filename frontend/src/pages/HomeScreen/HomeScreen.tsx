@@ -38,8 +38,7 @@ export default function HomeScreen() {
         <Text style={styles.title}>MakerMusic</Text>
         <Text style={styles.userName}>Olá, {user?.name}</Text>
 
-        {/* --- CORREÇÃO: Botões definidos explicitamente para garantir a segurança de tipo --- */}
-        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen')}>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('HorariosScreen', {})}>
           <Text style={styles.buttonText}>Meus Horários</Text>
         </TouchableOpacity>
 
