@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: { 
     color: '#d4af37', 
-    fontSize: 16 
+    fontSize: 16,
+    fontWeight: 'bold'
   },
 });
