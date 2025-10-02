@@ -68,12 +68,12 @@ export default function HorariosScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     scheduleItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 15 },
     dayText: { color: '#f6e27f', fontSize: 20, fontWeight: 'bold', textTransform: 'capitalize' },
     timeText: { color: '#fff', fontSize: 18, marginVertical: 5 },
     teacherText: { color: '#ccc', fontSize: 16 },
     emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 50 },
-    backButton: { marginTop: 20, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

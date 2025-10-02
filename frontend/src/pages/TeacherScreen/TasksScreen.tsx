@@ -137,7 +137,7 @@ export default function TasksScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     label: { fontSize: 18, color: '#fff', marginBottom: 10, alignSelf: 'flex-start' },
     input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
     pickerContainer: {
@@ -153,6 +153,6 @@ const styles = StyleSheet.create({
     },
     button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
     buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-    backButton: { position: 'absolute', bottom: 30, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

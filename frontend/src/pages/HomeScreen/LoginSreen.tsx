@@ -80,7 +80,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1b1f", padding: 20 },
-  title: { color: "#f6e27f", fontSize: 32, fontWeight: "bold", marginBottom: 40 },
+  title: { color: "#f6e27f", fontSize: 32, fontWeight: "bold", marginBottom: 30, marginTop: 40 },
   input: { width: "100%", backgroundColor: "#333", color: "#fff", padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 16 },
   button: { backgroundColor: "#d4af37", padding: 15, borderRadius: 10, width: "100%", alignItems: "center", marginTop: 20 },
   buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 18 },

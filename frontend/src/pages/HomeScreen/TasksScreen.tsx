@@ -135,7 +135,7 @@ export default function TasksScreen() {
 // Estilos (adicionados estilos para o texto selecionado)
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
     label: { fontSize: 18, color: '#fff', marginBottom: 10 },
     studentItem: { padding: 15, backgroundColor: '#333', borderRadius: 10, marginBottom: 10 },
@@ -145,6 +145,6 @@ const styles = StyleSheet.create({
     emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 20 },
     button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
     buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-    backButton: { position: 'absolute', bottom: 30, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

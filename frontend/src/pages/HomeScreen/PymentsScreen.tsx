@@ -111,7 +111,7 @@ export default function PymentsScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     paymentItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     description: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
     amount: { color: '#f6e27f', fontSize: 16, marginVertical: 4 },
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     payButton: { backgroundColor: '#d4af37', paddingVertical: 8, paddingHorizontal: 20, borderRadius: 5, marginTop: 8 },
     payButtonText: { color: '#1c1b1f', fontWeight: 'bold' },
     emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 50 },
-    backButton: { marginTop: 20, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
     // Estilos do Modal
     modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.7)' },
     modalView: { width: '85%', backgroundColor: '#333', borderRadius: 20, padding: 25, alignItems: 'center' },

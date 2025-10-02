@@ -105,7 +105,7 @@ export default function AdminFinanceScreen() {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
         <Text style={styles.backButtonText}>Voltar</Text>
       </TouchableOpacity>
     </View>
@@ -119,7 +119,8 @@ const styles = StyleSheet.create({
     input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20 },
     button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
     buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-    backButtonText: { color: '#d4af37', marginTop: 15 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });
 
 // MUDANÇA: Adicionados estilos para o RNPickerSelect

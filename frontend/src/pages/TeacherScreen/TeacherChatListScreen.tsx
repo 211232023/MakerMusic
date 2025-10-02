@@ -67,10 +67,10 @@ export default function TeacherChatListScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', paddingTop: 60, paddingHorizontal: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, textAlign: 'center' },
     studentItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 10 },
     studentName: { color: '#fff', fontSize: 18 },
     emptyText: { color: '#aaa', textAlign: 'center', marginTop: 50, fontStyle: 'italic' },
-    backButton: { position: 'absolute', bottom: 40, alignSelf: 'center' },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
     backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

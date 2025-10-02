@@ -108,6 +108,6 @@ const styles = StyleSheet.create({
     completeButton: { backgroundColor: '#d4af37', padding: 10, borderRadius: 5, marginTop: 15, alignItems: 'center' },
     completeButtonText: { color: '#1c1b1f', fontWeight: 'bold' },
     emptyText: { color: '#aaa', textAlign: 'center', marginTop: 50, fontSize: 16 },
-    backButton: { marginTop: 20, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

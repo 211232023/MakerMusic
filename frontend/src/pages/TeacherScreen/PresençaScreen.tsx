@@ -118,7 +118,7 @@ export default function PresencaScreen() {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     daySelector: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
     dayButton: { padding: 10, borderRadius: 20, backgroundColor: '#333' },
     selectedDayButton: { backgroundColor: '#d4af37' },
@@ -134,6 +134,6 @@ const styles = StyleSheet.create({
     justificado: { backgroundColor: 'orange' },
     statusButtonText: { color: '#fff', fontWeight: 'bold' },
     emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 40 },
-    backButton: { marginTop: 20, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

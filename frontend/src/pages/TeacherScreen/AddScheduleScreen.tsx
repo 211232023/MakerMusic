@@ -151,6 +151,6 @@ const styles = StyleSheet.create({
   picker: { color: '#fff', height: 60 },
   button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 20 },
   buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-  backButton: { marginTop: 20 },
-  backButtonText: { color: '#d4af37', fontSize: 16 },
+  backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+  backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });

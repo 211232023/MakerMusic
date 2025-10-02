@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     color: '#f6e27f',
-    marginBottom: 20,
+    marginBottom: 30,
     marginTop: 40,
     textAlign: 'center',
   },
@@ -172,10 +172,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 50,
   },
-  backButton: { 
-    marginTop: 20,
-    alignSelf: 'center' 
-  },
+  backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
   backButtonText: { 
     color: '#d4af37', 
     fontSize: 16,

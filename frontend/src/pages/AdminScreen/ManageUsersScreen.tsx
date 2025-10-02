@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Button } from 'react-native';
-import RNPickerSelect from 'react-native-picker-select'; // MUDANÇA: Importe o RNPickerSelect
+import RNPickerSelect from 'react-native-picker-select';
+import { useNavigation } from '@react-navigation/native'; // 1. Importe o useNavigation
 import { useUser } from '../src/UserContext';
 import { getAllUsers, assignTeacherToStudent } from '../../services/api';
 
-// A definição do tipo User permanece a mesma
 type User = {
   id: string;
   name: string;
@@ -14,6 +14,7 @@ type User = {
 };
 
 export default function ManageUsersScreen() {
+  const navigation = useNavigation(); // 2. Obtenha o objeto de navegação
   const { token } = useUser();
   const [users, setUsers] = useState<User[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -58,7 +59,6 @@ export default function ManageUsersScreen() {
 
   const teachers = users.filter(u => u.role === 'PROFESSOR');
   
-  // MUDANÇA: Formate os dados para o RNPickerSelect
   const teacherItems = teachers.map(teacher => ({
     label: teacher.name,
     value: teacher.id,
@@ -92,7 +92,6 @@ export default function ManageUsersScreen() {
             <Text style={styles.modalTitle}>Vincular Professor a</Text>
             <Text style={styles.modalStudentName}>{selectedStudent?.name}</Text>
             
-            {/* MUDANÇA: Substitua o Picker pelo RNPickerSelect */}
             <RNPickerSelect
               onValueChange={(value) => setSelectedTeacher(value)}
               items={teacherItems}
@@ -108,14 +107,18 @@ export default function ManageUsersScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* 3. Adicione o botão de Voltar aqui */}
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Text style={styles.backButtonText}>Voltar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
 
-// Estilos originais
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 24, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, textAlign: 'center' },
+    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     userItem: { backgroundColor: '#333', padding: 15, borderRadius: 10, marginBottom: 10 },
     userName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
     userEmail: { color: '#ccc', fontSize: 14 },
@@ -125,9 +128,10 @@ const styles = StyleSheet.create({
     modalView: { width: '80%', backgroundColor: '#333', borderRadius: 20, padding: 35, alignItems: 'center' },
     modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
     modalStudentName: { fontSize: 18, color: '#f6e27f', marginBottom: 15 },
+    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });
 
-// MUDANÇA: Adicione estilos para o RNPickerSelect (você pode customizar como quiser)
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,
@@ -137,7 +141,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'gray',
     borderRadius: 4,
     color: 'white',
-    paddingRight: 30, // para garantir que o texto não fique atrás do ícone
+    paddingRight: 30,
     backgroundColor: '#444',
     marginBottom: 20,
     width: 250
@@ -150,7 +154,7 @@ const pickerSelectStyles = StyleSheet.create({
     borderColor: 'purple',
     borderRadius: 8,
     color: 'white',
-    paddingRight: 30, // para garantir que o texto não fique atrás do ícone
+    paddingRight: 30,
     backgroundColor: '#444',
     marginBottom: 20,
     width: 250

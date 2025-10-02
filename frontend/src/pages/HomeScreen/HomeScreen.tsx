@@ -77,7 +77,8 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: 'bold',
     color: '#f6e27f',
-    marginBottom: 10,
+    marginBottom: 30,
+    marginTop: 40
   },
   userName: {
     fontSize: 18,
