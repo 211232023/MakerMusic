@@ -1,34 +1,46 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Modal, Image, Alert } from 'react-native';
+// --- CORREÇÃO 1: Importar o SafeAreaView da biblioteca correta ---
+import { 
+  View, Text, StyleSheet, FlatList, ActivityIndicator, 
+  TouchableOpacity, Modal, Image, Alert 
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyPayments } from '../../services/api';
 
-// --- CORREÇÃO AQUI ---
-// O caminho correto é ../../../assets/ para chegar à pasta 'assets' na raiz do frontend
-const fakeQrCode = require('../../assets/fake-qr-code.png');
+// Corrija o caminho se a sua pasta assets estiver noutro local
+const fakeQrCode = require('../../assets/fake-qr-code.png'); 
 
 type Payment = {
   id: number;
-  amount: number;
+  amount: number | string;
   description: string;
   payment_date: string;
   status: 'PAGO' | 'PENDENTE' | 'ATRASADO';
 };
 
-export default function PymentsScreen() {
+export default function PaymentsScreen() {
   const navigation = useNavigation();
   const { token } = useUser();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 
   const fetchPayments = useCallback(async () => {
-    if (token) {
+    if (!token) {
+        setIsLoading(false);
+        return;
+    };
+
+    try {
       setIsLoading(true);
       const data = await getMyPayments(token);
-      if (Array.isArray(data)) setPayments(data);
+      setPayments(Array.isArray(data) ? data : []);
+    } catch (error) {
+      console.error("Erro ao buscar pagamentos:", error);
+      Alert.alert("Erro", "Não foi possível carregar seus dados financeiros.");
+    } finally {
       setIsLoading(false);
     }
   }, [token]);
@@ -39,90 +51,94 @@ export default function PymentsScreen() {
     }, [fetchPayments])
   );
 
-  const handlePay = (payment: Payment) => {
-    setSelectedPayment(payment);
-    setModalVisible(true);
-  };
+  const handlePay = () => setModalVisible(true);
   
   const getStatusStyle = (status: Payment['status']) => {
-    if (status === 'PAGO') return { color: '#2E8B57' }; // Verde Mar
-    if (status === 'ATRASADO') return { color: '#FF6347' }; // Tomate
-    return { color: '#FFA500' }; // Laranja
+    if (status === 'PAGO') return styles.statusPaid;
+    if (status === 'ATRASADO') return styles.statusOverdue;
+    return styles.statusPending;
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Meu Financeiro</Text>
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#d4af37" />
-      ) : (
-        <FlatList
-          data={payments}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.paymentItem}>
-              <View>
-                <Text style={styles.description}>{item.description}</Text>
-                <Text style={styles.amount}>R$ {typeof item.amount === 'number' ? item.amount.toFixed(2) : '0.00'}</Text>
-                <Text style={styles.date}>Vencimento: {new Date(item.payment_date).toLocaleDateString()}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Meu Financeiro</Text>
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#d4af37" />
+        ) : (
+          <FlatList
+            data={payments}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <View style={styles.paymentItem}>
+                <View>
+                  <Text style={styles.description}>{item.description || 'Sem descrição'}</Text>
+                  <Text style={styles.amount}>
+                    R$ {parseFloat(String(item.amount) || '0').toFixed(2)}
+                  </Text>
+                  <Text style={styles.date}>Vencimento: {new Date(item.payment_date).toLocaleDateString()}</Text>
+                </View>
+                <View style={{alignItems: 'center'}}>
+                  <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
+                  {item.status !== 'PAGO' && (
+                    <TouchableOpacity style={styles.payButton} onPress={handlePay}>
+                      <Text style={styles.payButtonText}>Pagar</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
-              <View style={{alignItems: 'center'}}>
-                <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
-                {item.status !== 'PAGO' && (
-                  <TouchableOpacity style={styles.payButton} onPress={() => handlePay(item)}>
-                    <Text style={styles.payButtonText}>Pagar</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+            )}
+            ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma cobrança foi vinculada a você.</Text>}
+          />
+        )}
+        
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalView}>
+              <Text style={styles.modalTitle}>Pagar com Pix</Text>
+              <Image source={fakeQrCode} style={styles.qrCode} />
+              <Text style={styles.pixKeyLabel}>Chave Pix (Copia e Cola):</Text>
+              <Text selectable style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
+              <TouchableOpacity style={styles.closeButton} onPress={() => {
+                  setModalVisible(false);
+                  Alert.alert("Pagamento Simulado", "Numa aplicação real, o status seria atualizado após a confirmação do pagamento.");
+              }}>
+                  <Text style={styles.closeButtonText}>Fechar</Text>
+              </TouchableOpacity>
             </View>
-          )}
-          ListEmptyComponent={<Text style={styles.emptyText}>Nenhum registo financeiro encontrado.</Text>}
-        />
-      )}
-      
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalTitle}>Pagar com Pix</Text>
-            <Image source={fakeQrCode} style={styles.qrCode} />
-            <Text style={styles.pixKeyLabel}>Chave Pix (Copia e Cola):</Text>
-            <Text selectable style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
-            <TouchableOpacity style={styles.closeButton} onPress={() => {
-                setModalVisible(false);
-                Alert.alert("Pagamento Simulado", "Numa aplicação real, o status seria atualizado após a confirmação do pagamento.");
-            }}>
-                <Text style={styles.closeButtonText}>Fechar</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
+        </Modal>
 
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
+    safeArea: { flex: 1, backgroundColor: '#1c1b1f' },
+    container: { flex: 1, padding: 20 },
     title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     paymentItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
     description: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
     amount: { color: '#f6e27f', fontSize: 16, marginVertical: 4 },
     date: { color: '#ccc', fontSize: 14 },
-    status: { fontSize: 16, fontWeight: 'bold' },
+    status: { fontSize: 16, fontWeight: 'bold', textTransform: 'capitalize' },
+    statusPaid: { color: '#2E8B57' },
+    statusPending: { color: '#FFA500' },
+    statusOverdue: { color: '#FF6347' },
     payButton: { backgroundColor: '#d4af37', paddingVertical: 8, paddingHorizontal: 20, borderRadius: 5, marginTop: 8 },
     payButtonText: { color: '#1c1b1f', fontWeight: 'bold' },
-    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 50 },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
+    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 50, fontSize: 16 },
+    backButton: { position: 'absolute', bottom: 30, alignSelf: 'center' },
     backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
-    // Estilos do Modal
     modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.7)' },
     modalView: { width: '85%', backgroundColor: '#333', borderRadius: 20, padding: 25, alignItems: 'center' },
     modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#f6e27f', marginBottom: 15 },

@@ -3,38 +3,19 @@ const { pool } = require('../config/db');
 // Admin define ou atualiza um pagamento para um aluno
 exports.createOrUpdatePayment = async (req, res) => {
   const { studentId, amount, paymentDate, status, description } = req.body;
-  const financeUserId = req.user.id; // ID do Admin/Financeiro logado
+  const financeUserId = req.user.id;
 
   if (!studentId || !amount || !paymentDate || !status) {
     return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
   }
 
   try {
-    // Usamos "ON DUPLICATE KEY UPDATE" para criar um novo pagamento ou atualizar um existente
-    // para um aluno em um determinado mês/ano.
-    // Vamos usar o primeiro dia do mês como identificador único.
-    const paymentMonth = new Date(paymentDate).toISOString().slice(0, 7) + '-01';
-
-    const query = `
-      INSERT INTO payments (student_id, finance_user_id, amount, description, payment_date, status)
-      VALUES (?, ?, ?, ?, ?, ?)
-      ON DUPLICATE KEY UPDATE 
-        amount = VALUES(amount), 
-        status = VALUES(status), 
-        description = VALUES(description),
-        finance_user_id = VALUES(finance_user_id);
-    `;
-    
-    // Precisamos de uma forma de identificar o pagamento para o ON DUPLICATE KEY UPDATE funcionar.
-    // Vamos adicionar uma coluna 'payment_identifier' (ex: '2023-10') na tabela 'payments'
-    // Por agora, vamos simplificar e apenas inserir, assumindo um pagamento por vez.
-    
     const insertQuery = `
         INSERT INTO payments (student_id, finance_user_id, amount, description, payment_date, status)
         VALUES (?, ?, ?, ?, ?, ?)
     `;
-
-    await pool.query(insertQuery, [studentId, financeUserId, amount, description, paymentDate, status]);
+    // --- CORREÇÃO: Usar 'pool' em vez de 'db' ---
+    await pool.query(insertQuery, [studentId, financeUserId, amount, description || 'Mensalidade', paymentDate, status]);
 
     res.status(201).json({ message: 'Pagamento registado com sucesso!' });
   } catch (error) {
@@ -43,20 +24,23 @@ exports.createOrUpdatePayment = async (req, res) => {
   }
 };
 
+// Aluno busca os seus pagamentos
 exports.getMyPayments = async (req, res) => {
-  try {
-    const [payments] = await db.query('SELECT * FROM payments WHERE user_id = ?', [req.user.id]);
-
-    const formattedPayments = payments.map(payment => ({
-      ...payment,
-      amount: parseFloat(payment.amount) 
-    }));
-
-    res.json(formattedPayments);
-  } catch (error) {
-    console.error('Erro ao buscar pagamentos:', error);
-    res.status(500).send('Erro no servidor');
-  }
+    const studentId = req.user.id;
+    try {
+        // --- CORREÇÃO: Usar 'pool' em vez de 'db' ---
+        const [payments] = await pool.query(
+            `SELECT id, amount, description, payment_date, status 
+             FROM payments 
+             WHERE student_id = ? 
+             ORDER BY payment_date DESC`,
+            [studentId]
+        );
+        res.json(payments);
+    } catch (error) {
+        console.error('Erro ao buscar pagamentos:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
 };
 
 exports.getAllPayments = async (req, res) => {

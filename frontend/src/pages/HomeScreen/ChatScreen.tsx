@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Alert, SafeAreaView
+  ActivityIndicator, KeyboardAvoidingView, Platform, Alert, SafeAreaView, StatusBar
 } from 'react-native';
 import { useRoute, RouteProp, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
@@ -79,28 +79,28 @@ export default function ChatScreen() {
     );
   }
 
-  const HEADER_HEIGHT = 60; // Altura aproximada do cabeçalho
-
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>{"< Voltar"}</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{otherUserName}</Text>
+        <View style={{ width: 80 }} />
+      </View>
+      
       <KeyboardAvoidingView
-        style={styles.keyboardAvoidingContainer}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={HEADER_HEIGHT}
+        style={styles.keyboardAvoidingContainer}
+        keyboardVerticalOffset={26}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>{"< Voltar"}</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{otherUserName}</Text>
-          <View style={{ width: 80 }} />
-        </View>
-
         <FlatList
           ref={flatListRef}
           data={messages}
           keyExtractor={(item, index) => item.id.toString() + index}
           style={styles.messageList}
+          contentContainerStyle={{ paddingBottom: 10 }} // Adiciona um respiro no final da lista
           renderItem={({ item }) => (
             <View style={[
               styles.messageBubble,
@@ -114,6 +114,7 @@ export default function ChatScreen() {
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
           onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
         />
+
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -132,13 +133,13 @@ export default function ChatScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
     backgroundColor: '#1c1b1f',
   },
-  container: {
+  safeArea: { // Este estilo não é mais usado, mas deixo aqui para referência futura
     flex: 1,
-    backgroundColor: '#1c1b1f'
+    backgroundColor: '#1c1b1f',
   },
   keyboardAvoidingContainer: {
     flex: 1,
@@ -148,11 +149,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
-    paddingBottom: 10, // Apenas padding inferior
+    paddingBottom: 10,
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     backgroundColor: '#2a292e',
     borderBottomWidth: 1,
     borderBottomColor: '#333',
-    height: 60, // Altura fixa para o header
   },
   headerTitle: {
     color: '#f6e27f',
@@ -162,47 +163,47 @@ const styles = StyleSheet.create({
   backButton: {
     padding: 5,
     width: 80,
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   backButtonText: {
     color: '#d4af37',
     fontSize: 16,
+    fontWeight: 'bold'
   },
   messageList: {
     flex: 1,
-    paddingHorizontal: 10
+    paddingHorizontal: 10,
   },
   messageBubble: {
     maxWidth: '80%',
     padding: 12,
     borderRadius: 18,
-    marginVertical: 5
+    marginVertical: 5,
   },
   myMessage: {
     backgroundColor: '#d4af37',
-    alignSelf: 'flex-end'
+    alignSelf: 'flex-end',
   },
   theirMessage: {
     backgroundColor: '#333',
-    alignSelf: 'flex-start'
+    alignSelf: 'flex-start',
   },
   myMessageText: {
     color: '#1c1b1f',
-    fontSize: 16
+    fontSize: 16,
   },
   theirMessageText: {
     color: '#fff',
-    fontSize: 16
+    fontSize: 16,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
-    paddingTop: 10,
-    paddingBottom: Platform.OS === 'ios' ? 20 : 15, // Aumentado para mais segurança
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#333',
-    backgroundColor: '#2a292e'
+    backgroundColor: '#2a292e',
   },
   input: {
     flex: 1,
@@ -212,16 +213,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     marginRight: 10,
-    fontSize: 16
+    fontSize: 16,
   },
   sendButton: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 15
+    paddingHorizontal: 15,
   },
   sendButtonText: {
     color: '#d4af37',
     fontWeight: 'bold',
-    fontSize: 16
+    fontSize: 16,
   },
 });
