@@ -1,8 +1,7 @@
 const { pool } = require('../config/db');
 
-// Professor cria um novo horário para um aluno
 exports.createSchedule = async (req, res) => {
-  const teacherId = req.user.id; // ID do professor logado
+  const teacherId = req.user.id; 
   const { studentId, dayOfWeek, startTime, endTime } = req.body;
 
   if (!studentId || !dayOfWeek || !startTime || !endTime) {
@@ -21,9 +20,8 @@ exports.createSchedule = async (req, res) => {
   }
 };
 
-// Busca os horários de um aluno específico (para o aluno ver sua própria agenda)
 exports.getSchedulesByStudent = async (req, res) => {
-    const studentId = req.user.id; // O próprio aluno logado
+    const studentId = req.user.id; 
     try {
         const [schedules] = await pool.query(
             `SELECT s.id, s.day_of_week, s.start_time, s.end_time, u.name as teacher_name
@@ -40,10 +38,9 @@ exports.getSchedulesByStudent = async (req, res) => {
     }
 };
 
-// Busca os horários de um professor num dia específico (para a tela de presença)
 exports.getSchedulesForTeacherByDay = async (req, res) => {
     const teacherId = req.user.id;
-    const { dayOfWeek } = req.params; // ex: 'SEGUNDA', 'TERCA'
+    const { dayOfWeek } = req.params; 
 
     try {
         const query = `

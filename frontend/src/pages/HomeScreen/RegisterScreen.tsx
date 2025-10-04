@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../src/types/navigation";
-import { registerUser } from "../../services/api"; // Importa a função da API
+import { registerUser } from "../../services/api";
 
 export default function RegisterScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
@@ -29,11 +29,10 @@ export default function RegisterScreen() {
     try {
       const response = await registerUser(userData);
 
-      if (response.userId) { // O backend retorna userId em caso de sucesso
+      if (response.userId) { 
         Alert.alert("Sucesso", "Conta criada com sucesso! Você já pode fazer login.");
         navigation.goBack();
       } else {
-        // Mostra a mensagem de erro vinda do backend (ex: email duplicado)
         Alert.alert("Erro de Cadastro", response.message || "Ocorreu um erro ao criar a conta.");
       }
     } catch (error) {

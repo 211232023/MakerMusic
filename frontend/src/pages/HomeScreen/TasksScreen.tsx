@@ -1,18 +1,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, FlatList } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { useUser } from '../src/UserContext'; // Importar o useUser
-import { getStudentsByTeacher, createTask } from '../../services/api'; // Usar as funções corretas da API
+import { useUser } from '../src/UserContext'; 
+import { getStudentsByTeacher, createTask } from '../../services/api';
 
-// Tipos
 type Student = {
-  id: string; // ID geralmente é uma string vinda do backend
+  id: string; 
   name: string;
 };
 
 export default function TasksScreen() {
   const navigation = useNavigation();
-  const { user, token } = useUser(); // Obter utilizador e token do contexto
+  const { user, token } = useUser(); 
 
   const [title, setTitle] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -21,7 +20,6 @@ export default function TasksScreen() {
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
 
   const loadStudents = useCallback(async () => {
-    // Garantir que o utilizador e o token existem e que o utilizador é um professor
     if (user && token && user.role === 'PROFESSOR') {
       try {
         setIsLoadingStudents(true);
@@ -40,7 +38,6 @@ export default function TasksScreen() {
     }
   }, [user, token]);
 
-  // useFocusEffect é chamado sempre que o utilizador volta a esta tela
   useFocusEffect(
     useCallback(() => {
       loadStudents();
@@ -61,7 +58,6 @@ export default function TasksScreen() {
     };
 
     try {
-      // Passar o token para a chamada da API
       const response = await createTask(taskData, token);
 
       if (response.message === 'Tarefa criada com sucesso!') {
@@ -132,7 +128,6 @@ export default function TasksScreen() {
   );
 }
 
-// Estilos (adicionados estilos para o texto selecionado)
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
     title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },

@@ -19,8 +19,9 @@ export default function AddScheduleScreen() {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string>(DAYS_OF_WEEK[0]);
-  const [startTime, setStartTime] = useState(''); // Formato HH:MM
-  const [endTime, setEndTime] = useState('');     // Formato HH:MM
+  const [startTime, setStartTime] = useState(''); 
+  
+  const [endTime, setEndTime] = useState('');    
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);

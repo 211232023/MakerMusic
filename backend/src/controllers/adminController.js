@@ -1,9 +1,7 @@
 const { pool } = require('../config/db');
 
-// Busca todos os usuários (exceto o próprio admin que faz o pedido)
 exports.getAllUsers = async (req, res) => {
     try {
-        // Usamos "!= ?" para não listar o próprio admin na lista de usuários a gerir
         const [users] = await pool.query('SELECT id, name, email, role, teacher_id FROM users WHERE id != ?', [req.user.id]);
         res.json(users);
     } catch (error) {
@@ -12,7 +10,6 @@ exports.getAllUsers = async (req, res) => {
     }
 };
 
-// Apaga um usuário pelo ID
 exports.deleteUser = async (req, res) => {
     const { id } = req.params;
     try {
@@ -24,7 +21,6 @@ exports.deleteUser = async (req, res) => {
     }
 };
 
-// Edita os dados de um usuário
 exports.editUser = async (req, res) => {
     const { id } = req.params;
     const { name, email, role } = req.body;
@@ -40,7 +36,6 @@ exports.editUser = async (req, res) => {
     }
 };
 
-// Busca os alunos de um professor específico
 exports.getStudentsByTeacher = async (req, res) => {
     try {
         const { teacherId } = req.params;
@@ -52,11 +47,9 @@ exports.getStudentsByTeacher = async (req, res) => {
     }
 };
 
-// Vincula um aluno a um professor
 exports.assignTeacherToStudent = async (req, res) => {
     const { studentId, teacherId } = req.body;
     try {
-        // Se teacherId for uma string vazia do frontend, converte para null
         const teacherToAssign = teacherId || null;
         await pool.query('UPDATE users SET teacher_id = ? WHERE id = ?', [teacherToAssign, studentId]);
         res.status(200).json({ message: 'Professor vinculado ao aluno com sucesso!' });

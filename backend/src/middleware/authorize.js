@@ -1,6 +1,5 @@
-// Middleware para verificar se o utilizador tem um dos perfis permitidos
 const authorize = (roles = []) => {
-  // Garante que 'roles' seja sempre um array
+  
   if (typeof roles === 'string') {
     roles = [roles];
   }

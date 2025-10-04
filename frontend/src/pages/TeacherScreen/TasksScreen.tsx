@@ -5,7 +5,6 @@ import { useUser } from '../src/UserContext';
 import { getStudentsByTeacher, createTask } from '../../services/api';
 import { Picker } from '@react-native-picker/picker';
 
-// Define o tipo para um aluno que vem da API
 type Student = {
   id: string;
   name: string;
@@ -13,7 +12,7 @@ type Student = {
 
 export default function TasksScreen() {
   const navigation = useNavigation();
-  const { user, token } = useUser(); // Obter dados do utilizador logado
+  const { user, token } = useUser();
 
   const [title, setTitle] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -22,7 +21,6 @@ export default function TasksScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
 
-  // Função para carregar os alunos vinculados a este professor
   const loadStudents = useCallback(async () => {
     if (user && token && user.role === 'PROFESSOR') {
       try {
@@ -32,7 +30,6 @@ export default function TasksScreen() {
         if (Array.isArray(studentList)) {
             setStudents(studentList);
         } else {
-            // Se a resposta não for uma lista, define como vazio para evitar erros
             setStudents([]);
         }
       } catch (error) {
@@ -44,7 +41,6 @@ export default function TasksScreen() {
     }
   }, [user, token]);
 
-  // `useFocusEffect` garante que a lista de alunos é recarregada sempre que o professor volta a esta tela
   useFocusEffect(
     useCallback(() => {
       loadStudents();
@@ -74,7 +70,6 @@ export default function TasksScreen() {
 
       if (response.message === 'Tarefa criada com sucesso!') {
         Alert.alert('Sucesso', 'Tarefa atribuída com sucesso!');
-        // Limpa os campos após o sucesso
         setTitle('');
         setSelectedStudentId(null);
       } else {
@@ -145,7 +140,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#333',
         borderRadius: 10,
         marginBottom: 20,
-        overflow: 'hidden' // Garante que o Picker respeite o borderRadius no Android
+        overflow: 'hidden'
     },
     picker: {
         color: '#fff',

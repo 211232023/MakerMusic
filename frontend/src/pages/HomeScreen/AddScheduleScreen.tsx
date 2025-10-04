@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Tex
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getStudentsByTeacher, createSchedule } from '../../services/api';
-import RNPickerSelect from 'react-native-picker-select'; // MUDANÇA: Importado RNPickerSelect
+import RNPickerSelect from 'react-native-picker-select'; 
 
 type Student = {
   id: string;
@@ -66,7 +66,6 @@ export default function AddScheduleScreen() {
     }
   };
 
-  // MUDANÇA: Formatar dados para o RNPickerSelect
   const studentItems = students.map(student => ({
     label: student.name,
     value: student.id,
@@ -85,7 +84,6 @@ export default function AddScheduleScreen() {
       ) : (
         <>
           <Text style={styles.label}>Aluno</Text>
-          {/* MUDANÇA: Substituído Picker por RNPickerSelect */}
           <RNPickerSelect
             onValueChange={(value) => setSelectedStudentId(value)}
             items={studentItems}
@@ -95,7 +93,6 @@ export default function AddScheduleScreen() {
           />
 
           <Text style={styles.label}>Dia da Semana</Text>
-          {/* MUDANÇA: Substituído Picker por RNPickerSelect */}
           <RNPickerSelect
             onValueChange={(value) => setSelectedDay(value)}
             items={dayItems}
@@ -153,7 +150,6 @@ const styles = StyleSheet.create({
   backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });
 
-// MUDANÇA: Adicionados estilos para o RNPickerSelect
 const pickerSelectStyles = StyleSheet.create({
   inputIOS: {
     fontSize: 16,

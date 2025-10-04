@@ -23,6 +23,4 @@ const testConnection = async () => {
   }
 };
 
-// --- ALTERAÇÃO AQUI ---
-// Exporte um objeto que contém tanto o pool como a função de teste
 module.exports = { pool, testConnection };

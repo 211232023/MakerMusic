@@ -4,12 +4,10 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getTasksByStudent, updateTaskStatus } from '../../services/api';
 
-// Tipo para as tarefas que virão da API
 type Task = {
   id: string;
   title: string;
   due_date: string | null;
-  // Vamos precisar de saber o status da tarefa também
   completed?: boolean; 
 };
 
@@ -50,7 +48,7 @@ export default function StudentTasksScreen() {
             const response = await updateTaskStatus(taskId, true, token);
             if (response.message === 'Tarefa atualizada com sucesso!') {
               Alert.alert("Sucesso", "Tarefa marcada como concluída!");
-              fetchTasks(); // Recarrega a lista
+              fetchTasks(); 
             } else {
               Alert.alert("Erro", response.message || "Não foi possível atualizar a tarefa.");
             }
@@ -102,7 +100,7 @@ const styles = StyleSheet.create({
     title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 20, marginTop: 40, textAlign: 'center' },
     loadingText: { marginTop: 10, color: '#f6e27f' },
     taskItem: { backgroundColor: '#333', padding: 15, borderRadius: 10, marginBottom: 10 },
-    taskItemCompleted: { backgroundColor: '#2a4d2a' }, // Verde escuro para tarefas concluídas
+    taskItemCompleted: { backgroundColor: '#2a4d2a' }, 
     taskTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
     taskDueDate: { color: '#ccc', fontSize: 14, marginTop: 5 },
     completeButton: { backgroundColor: '#d4af37', padding: 10, borderRadius: 5, marginTop: 15, alignItems: 'center' },

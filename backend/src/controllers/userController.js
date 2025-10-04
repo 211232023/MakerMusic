@@ -1,8 +1,7 @@
 const { pool } = require('../config/db');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken'); // <-- CORREÇÃO: ADICIONE ESTA LINHA
+const jwt = require('jsonwebtoken');
 
-// Função para registar um novo utilizador
 exports.registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -30,7 +29,6 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// Função para fazer login de um utilizador
 exports.loginUser = async (req, res) => {
   const { email, password } = req.body;
 

@@ -6,7 +6,6 @@ import { getAllUsers, deleteUser } from '../../services/api';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types/navigation';
 
-// Tipo para os utilizadores que virão da API
 type UserFromApi = {
   id: string;
   name: string;
@@ -16,12 +15,11 @@ type UserFromApi = {
 
 export default function EntitiesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { token } = useUser(); // Pegar o token do utilizador logado
+  const { token } = useUser(); 
   
   const [users, setUsers] = useState<UserFromApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Função para carregar os utilizadores do backend
   const fetchUsers = useCallback(async () => {
     if (!token) return;
     try {
@@ -37,14 +35,12 @@ export default function EntitiesScreen() {
     }
   }, [token]);
 
-  // useFocusEffect é como o useEffect, mas é executado sempre que a tela entra em foco
   useFocusEffect(
     useCallback(() => {
       fetchUsers();
     }, [fetchUsers])
   );
 
-  // Função chamada ao pressionar o botão de excluir
   const handleDelete = (userId: string) => {
     Alert.alert(
       "Confirmar Exclusão",
@@ -61,7 +57,6 @@ export default function EntitiesScreen() {
             const response = await deleteUser(userId, token);
             if (response.message === 'Usuário apagado com sucesso.') {
               Alert.alert("Sucesso", response.message);
-              // Recarrega a lista de utilizadores para refletir a exclusão
               fetchUsers(); 
             } else {
               Alert.alert("Erro", response.message || "Não foi possível excluir o utilizador.");
@@ -158,7 +153,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   deleteButton: {
-    backgroundColor: '#8B0000', // Vermelho escuro
+    backgroundColor: '#8B0000', 
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 5,

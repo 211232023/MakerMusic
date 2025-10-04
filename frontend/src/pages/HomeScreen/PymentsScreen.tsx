@@ -1,5 +1,4 @@
 import React, { useState, useCallback } from 'react';
-// --- CORREÇÃO 1: Importar o SafeAreaView da biblioteca correta ---
 import { 
   View, Text, StyleSheet, FlatList, ActivityIndicator, 
   TouchableOpacity, Modal, Image, Alert 
@@ -9,7 +8,6 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyPayments } from '../../services/api';
 
-// Corrija o caminho se a sua pasta assets estiver noutro local
 const fakeQrCode = require('../../assets/fake-qr-code.png'); 
 
 type Payment = {

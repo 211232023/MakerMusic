@@ -40,7 +40,7 @@ export default function PresencaScreen() {
   const handleMarkAttendance = async (scheduleId: number, studentId: number, status: 'PRESENTE' | 'AUSENTE' | 'JUSTIFICADO') => {
     if (!token) return;
 
-    const today = new Date().toISOString().split('T')[0]; // Formato AAAA-MM-DD
+    const today = new Date().toISOString().split('T')[0];
 
     const attendanceData = {
         scheduleId,
@@ -51,7 +51,6 @@ export default function PresencaScreen() {
     
     const response = await markAttendance(attendanceData, token);
     if (response.message) {
-        // Atualiza a UI localmente para feedback instantâneo
         setSchedules(prev => prev.map(item => 
             item.id === scheduleId ? { ...item, attendance_status: status } : item
         ));

@@ -1,6 +1,5 @@
 const { pool } = require('../config/db');
 
-// Busca o histórico de mensagens entre o utilizador logado e outro utilizador
 exports.getChatHistory = async (req, res) => {
   try {
     const loggedInUserId = req.user.id;
@@ -21,7 +20,6 @@ exports.getChatHistory = async (req, res) => {
   }
 };
 
-// Envia uma nova mensagem
 exports.sendMessage = async (req, res) => {
   try {
     const senderId = req.user.id;

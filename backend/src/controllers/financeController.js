@@ -1,6 +1,5 @@
 const { pool } = require('../config/db');
 
-// Admin define ou atualiza um pagamento para um aluno
 exports.createOrUpdatePayment = async (req, res) => {
   const { studentId, amount, paymentDate, status, description } = req.body;
   const financeUserId = req.user.id;
@@ -14,7 +13,6 @@ exports.createOrUpdatePayment = async (req, res) => {
         INSERT INTO payments (student_id, finance_user_id, amount, description, payment_date, status)
         VALUES (?, ?, ?, ?, ?, ?)
     `;
-    // --- CORREÇÃO: Usar 'pool' em vez de 'db' ---
     await pool.query(insertQuery, [studentId, financeUserId, amount, description || 'Mensalidade', paymentDate, status]);
 
     res.status(201).json({ message: 'Pagamento registado com sucesso!' });
@@ -24,11 +22,9 @@ exports.createOrUpdatePayment = async (req, res) => {
   }
 };
 
-// Aluno busca os seus pagamentos
 exports.getMyPayments = async (req, res) => {
     const studentId = req.user.id;
     try {
-        // --- CORREÇÃO: Usar 'pool' em vez de 'db' ---
         const [payments] = await pool.query(
             `SELECT id, amount, description, payment_date, status 
              FROM payments 

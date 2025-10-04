@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 
-// Esta linha agora vai funcionar corretamente
 const { testConnection } = require('./src/config/db'); 
 
 const userRoutes = require('./src/routes/userRoutes');
@@ -29,7 +28,6 @@ app.use('/api/finance', financeRoutes);
 
 const startServer = async () => {
   try {
-    // Agora a função testConnection será encontrada e executada
     await testConnection(); 
     
     app.listen(PORT, () => {

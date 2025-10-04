@@ -2,9 +2,7 @@ const { pool } = require('../config/db');
 
 console.log('Conteúdo do pool no taskController:', pool);
 
-// Cria uma nova tarefa para um aluno específico
 exports.createTask = async (req, res) => {
-    // O creator_id vem do token (usuário logado)
     const creatorId = req.user.id; 
     const { studentId, title, dueDate } = req.body;
 
@@ -24,12 +22,9 @@ exports.createTask = async (req, res) => {
     }
 };
 
-// Pega as tarefas de um aluno específico
 exports.getTasksByStudent = async (req, res) => {
     try {
         const { studentId } = req.params;
-        
-        // Query melhorada com LEFT JOIN
         const query = `
             SELECT 
                 t.id, 
@@ -53,9 +48,8 @@ exports.getTasksByStudent = async (req, res) => {
 
 exports.updateTaskStatus = async (req, res) => {
   const { taskId } = req.params;
-  const { completed } = req.body; // Esperamos receber { "completed": true }
+  const { completed } = req.body;
 
-  // O ID do aluno vem do token para garantir que só o próprio aluno pode marcar a sua tarefa
   const studentId = req.user.id;
 
   if (typeof completed !== 'boolean') {
@@ -63,7 +57,6 @@ exports.updateTaskStatus = async (req, res) => {
   }
 
   try {
-    // Primeiro, vamos garantir que a tarefa pertence mesmo a este aluno
     const [tasks] = await pool.query('SELECT student_id FROM tasks WHERE id = ?', [taskId]);
     
     if (tasks.length === 0) {
@@ -74,8 +67,6 @@ exports.updateTaskStatus = async (req, res) => {
       return res.status(403).json({ message: 'Não tem permissão para alterar esta tarefa.' });
     }
 
-    // Agora, inserimos ou atualizamos o registo na tabela de submissões
-    // O comando `ON DUPLICATE KEY UPDATE` é uma forma eficiente de fazer um "upsert"
     const completedAt = completed ? new Date() : null;
     await pool.query(
       `INSERT INTO task_submissions (task_id, student_id, completed, completed_at) 

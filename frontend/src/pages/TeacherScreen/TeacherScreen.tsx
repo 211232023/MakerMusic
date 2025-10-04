@@ -44,7 +44,6 @@ export default function TeacherScreen() {
           <Text style={styles.buttonText}>Conversar com Alunos</Text>
       </TouchableOpacity>
       
-      {/* Botão de Sair agora usa o estilo 'logoutButton' */}
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
           <Text style={styles.buttonText}>Sair</Text>
       </TouchableOpacity>
@@ -91,9 +90,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 30,
     },
-    // --- ESTILO ATUALIZADO/ADICIONADO ---
     logoutButton: {
         backgroundColor: '#8B0000',
-        marginTop: 20, // Garante o mesmo espaçamento da HomeScreen
+        marginTop: 20, 
     },
 });

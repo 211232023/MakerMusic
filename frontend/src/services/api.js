@@ -1,7 +1,5 @@
-// ATENÇÃO: Substitua 'SEU_IP_AQUI' pelo endereço de IP da sua máquina!
 const BASE_URL = 'http://192.168.0.158:3000/api';
 
-// Função para o registo de utilizadores
 export const registerUser = async (userData) => {
   try {
     const response = await fetch(`${BASE_URL}/users/register`, {
@@ -18,7 +16,6 @@ export const registerUser = async (userData) => {
   }
 };
 
-// Função para o login de utilizadores
 export const loginUser = async (credentials) => {
   try {
     const response = await fetch(`${BASE_URL}/users/login`, {
@@ -45,7 +42,7 @@ export const getMyTasks = async () => {
     return response.json();
   } catch (error) {
     console.error('Erro ao obter tarefas:', error);
-    return []; // Retorna um array vazio em caso de erro de rede
+    return [];
   }
 };
 
@@ -63,7 +60,6 @@ export const getMyStudents = async () => {
   }
 };
 
-// Criar uma nova tarefa
 export const createTask = async (taskData, token) => {
     const response = await fetch(`${BASE_URL}/tasks`, {
         method: 'POST',
@@ -71,19 +67,17 @@ export const createTask = async (taskData, token) => {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(taskData) // ex: { studentId: '1', title: 'Estudar...', dueDate: '2025-10-10' }
+        body: JSON.stringify(taskData) 
     });
     return response.json();
 };
 
-// Obter a lista de todos os utilizadores
 export const getAllUsers = async (token) => {
     const response = await fetch(`${BASE_URL}/admin/users`, {
         headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.json();
 };
-
 
 export const assignTeacherToStudent = async (studentId, teacherId, token) => {
     const response = await fetch(`${BASE_URL}/admin/assign-teacher`, {
@@ -126,7 +120,6 @@ export const deleteUser = async (userId, token) => {
   }
 };
 
-// Aluno marca uma tarefa como concluída
 export const updateTaskStatus = async (taskId, completed, token) => {
   try {
     const response = await fetch(`${BASE_URL}/tasks/${taskId}/status`, {
@@ -156,7 +149,6 @@ export const getChatHistory = async (otherUserId, token) => {
   }
 };
 
-// Envia uma nova mensagem de chat
 export const sendMessage = async (receiverId, messageText, token) => {
   try {
     const response = await fetch(`${BASE_URL}/chat`, {
@@ -193,7 +185,6 @@ export const getMySchedules = async (token) => {
   }
 };
 
-// Professor busca a agenda de um dia específico
 export const getSchedulesForTeacherByDay = async (dayOfWeek, token) => {
     try {
         const response = await fetch(`${BASE_URL}/schedules/teacher/day/${dayOfWeek}`, {
@@ -206,7 +197,6 @@ export const getSchedulesForTeacherByDay = async (dayOfWeek, token) => {
     }
 };
 
-// Professor marca a presença de um aluno
 export const markAttendance = async (attendanceData, token) => {
     try {
         const response = await fetch(`${BASE_URL}/attendance`, {
@@ -224,7 +214,6 @@ export const markAttendance = async (attendanceData, token) => {
     }
 };
 
-// Professor cria um novo horário
 export const createSchedule = async (scheduleData, token) => {
     try {
         const response = await fetch(`${BASE_URL}/schedules`, {
@@ -259,7 +248,6 @@ export const createOrUpdatePayment = async (paymentData, token) => {
   }
 };
 
-// Aluno busca os seus pagamentos
 export const getMyPayments = async (token) => {
   try {
     const response = await fetch(`${BASE_URL}/finance/my-payments`, {

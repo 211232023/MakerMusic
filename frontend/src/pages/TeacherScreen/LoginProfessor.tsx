@@ -6,11 +6,9 @@ import { useUser } from "../src/UserContext";
 
 export default function ProfessorMenuScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { user } = useUser(); // Acessa o objeto user completo
-  const userRole = user?.role; // Acessa a propriedade 'role' de forma segura
+  const { user } = useUser(); 
+  const userRole = user?.role; 
 
-  // O melhor local para este tipo de verificação é na navegação principal
-  // Mas se for necessário aqui, o código fica mais robusto
   if (userRole !== "PROFESSOR") {
     return (
       <View style={[styles.container, { justifyContent: 'center' }]}>
