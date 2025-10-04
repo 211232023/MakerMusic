@@ -106,7 +106,6 @@ export default function PaymentsScreen() {
               <Text selectable style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
               <TouchableOpacity style={styles.closeButton} onPress={() => {
                   setModalVisible(false);
-                  Alert.alert("Pagamento Simulado", "Numa aplicação real, o status seria atualizado após a confirmação do pagamento.");
               }}>
                   <Text style={styles.closeButtonText}>Fechar</Text>
               </TouchableOpacity>
