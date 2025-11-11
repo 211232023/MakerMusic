@@ -23,7 +23,7 @@ export default function RegisterScreen() {
       name,
       email,
       password,
-      role: "ADMIN", 
+      role: "ADMIN",  
     };
 
     try {
