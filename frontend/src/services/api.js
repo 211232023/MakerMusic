@@ -1,4 +1,4 @@
-const BASE_URL = 'http://10.90.0.126:3000/api';
+const BASE_URL = 'http://localhost:3000/api';
 
 export const registerUser = async (userData) => {
   try {
