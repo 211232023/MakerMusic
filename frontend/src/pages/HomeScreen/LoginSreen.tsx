@@ -68,7 +68,7 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
       )}
-  //início de código adicionado recuperação de senha
+
       <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
         <Text style={styles.registerText}>
           Esqueceu a senha? <Text style={styles.registerLink}>Recupere aqui</Text>
