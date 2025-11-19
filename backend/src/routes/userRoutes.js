@@ -11,4 +11,6 @@ router.post('/login', userController.loginUser);
 
 router.get('/my-teacher', authMiddleware, authorize(['ALUNO']), userController.getMyTeacher);
 
+router.put('/update-password', userController.updatePassword);
+
 module.exports = router;

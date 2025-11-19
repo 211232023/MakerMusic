@@ -7,6 +7,7 @@ import { useUser } from "../src/UserContext";
 import { RootStackParamList } from "../src/types/navigation"; 
 import { loginUser } from "../../services/api";
 
+
 // A correção principal está aqui: "export default function..."
 export default function LoginScreen() {
   const { login } = useUser();

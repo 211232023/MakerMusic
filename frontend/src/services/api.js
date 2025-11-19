@@ -259,3 +259,19 @@ export const getMyPayments = async (token) => {
     return [];
   }
 };
+
+export async function updatePassword({ email, newPassword }) {
+  try {
+    const response = await fetch("http://localhost:3000/update-password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, newPassword })
+    });
+
+    return await response.json();
+
+  } catch (error) {
+    console.error("Erro ao atualizar senha:", error);
+    return { message: "Erro de conexão com o servidor" };
+  }
+}
