@@ -6,7 +6,8 @@ import { UserProvider, useUser } from './src/pages/src/UserContext';
 // Telas de Autenticação
 import LoginScreen from './src/pages/HomeScreen/LoginSreen';
 import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
-
+//terceira alteração de recuperação de senha
+import ForgotPasswordScreen from './src/pages/HomeScreen/ForgotPasswordScreen';
 // Telas Principais por Papel
 import HomeScreen from './src/pages/HomeScreen/HomeScreen';
 import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
@@ -60,6 +61,8 @@ function AppNavigator() {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          {/* Alteração da recuperação de senha */}
+          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
         </>
       )}
     </Stack.Navigator>

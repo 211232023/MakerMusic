@@ -5,6 +5,7 @@ import { NavigatorScreenParams } from '@react-navigation/native';
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined; 
   Home: undefined; // Home que se adapta ao papel do usuário
   Chat: undefined;
   Estudantes: undefined;

@@ -1,6 +1,7 @@
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
 
   // Telas principais dos perfis
   Home: undefined;

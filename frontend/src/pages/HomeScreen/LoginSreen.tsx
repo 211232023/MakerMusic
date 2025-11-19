@@ -68,6 +68,12 @@ export default function LoginScreen() {
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
       )}
+  //início de código adicionado recuperação de senha
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+        <Text style={styles.registerText}>
+          Esqueceu a senha? <Text style={styles.registerLink}>Recupere aqui</Text>
+        </Text>
+      </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.registerText}>
@@ -84,6 +90,9 @@ const styles = StyleSheet.create({
   input: { width: "100%", backgroundColor: "#333", color: "#fff", padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 16 },
   button: { backgroundColor: "#d4af37", padding: 15, borderRadius: 10, width: "100%", alignItems: "center", marginTop: 20 },
   buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 18 },
+  // INÍCIO DOS ESTILOS ADICIONADOS
+  forgotPasswordContainer: { width: "100%", alignItems: "flex-end", marginTop: 10 },
+  forgotPasswordText: { color: "#d4af37", fontSize: 14, fontWeight: "bold" },
   registerText: { color: "#fff", marginTop: 20, fontSize: 14 },
   registerLink: { color: "#d4af37", fontWeight: "bold" },
 });
