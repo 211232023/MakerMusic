@@ -97,3 +97,33 @@ exports.getMyTeacher = async (req, res) => {
     res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
+
+exports.updatePassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ message: 'Por favor, forneça o email e a nova senha.' });
+  }
+
+  try {
+    const [users] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await pool.query(
+      'UPDATE users SET password = ? WHERE email = ?',
+      [hashedPassword, email]
+    );
+
+    res.json({ message: 'Senha atualizada com sucesso!' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro no servidor ao atualizar a senha.' });
+  }
+};
