@@ -1,9 +1,15 @@
 const { pool } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const emailService = require('../services/emailService'); // Adicione esta linhas
 
 exports.registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
+
+  // SEGURANÇA: No cadastro público, apenas o papel 'ALUNO' é permitido.
+  if (role !== 'ALUNO') {
+    return res.status(403).json({ message: 'Apenas o cadastro de Alunos é permitido nesta rota.' });
+  }
 
   if (!name || !email || !password || !role) {
     return res.status(400).json({ message: 'Por favor, preencha todos os campos.' });
@@ -19,6 +25,41 @@ exports.registerUser = async (req, res) => {
     );
 
     res.status(201).json({ message: 'Utilizador registado com sucesso!', userId: result.insertId });
+
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+        return res.status(409).json({ message: 'Este email já está a ser utilizado.' });
+    }
+    console.error(error);
+    res.status(500).json({ message: 'Erro no servidor ao registar utilizador.' });
+  }
+};
+
+// NOVO: Função para cadastro de usuários por um Admin
+exports.registerUserByAdmin = async (req, res) => {
+  const { name, email, password, role } = req.body;
+
+  // O middleware 'authorize' já garante que apenas ADMINs cheguem aqui.
+  // Apenas precisamos garantir que o papel seja válido.
+  const validRoles = ['ALUNO', 'PROFESSOR', 'ADMIN', 'FINANCEIRO'];
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ message: 'Papel de usuário inválido.' });
+  }
+
+  if (!name || !email || !password || !role) {
+    return res.status(400).json({ message: 'Por favor, preencha todos os campos.' });
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const [result] = await pool.query(
+      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
+      [name, email, hashedPassword, role]
+    );
+
+    res.status(201).json({ message: `Utilizador ${role} registado com sucesso!`, userId: result.insertId });
 
   } catch (error) {
     if (error.code === 'ER_DUP_ENTRY') {
@@ -98,6 +139,8 @@ exports.getMyTeacher = async (req, res) => {
   }
 };
 
+
+
 exports.updatePassword = async (req, res) => {
   const { email, newPassword } = req.body;
 
@@ -126,4 +169,96 @@ exports.updatePassword = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: 'Erro no servidor ao atualizar a senha.' });
   }
+};
+
+// FUNÇÃO CORRIGIDA: exports.forgotPassword
+exports.forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ message: 'Por favor, forneça o email.' });
+  }
+
+  try {
+    const [users] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
+    }
+
+    // Gerar token simples (6 dígitos)
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hora
+
+    // Salvar token no banco de dados
+    await pool.query(
+      'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
+      [token, expiresAt, email]
+    );
+
+     // --- MUDANÇA: Usar o seu emailService.js ---
+     const emailResponse = await emailService.sendPasswordResetEmail(email, token);
+
+    if (emailResponse.success) {
+        res.json({ 
+            message: 'Token de recuperação enviado para o seu e-mail!'
+        });
+    } else {
+        // Se o e-mail falhar, o token ainda está no banco de dados
+        console.error('Erro ao enviar e-mail:', emailResponse.error);
+        res.status(500).json({ 
+            message: 'Erro ao enviar e-mail. Tente novamente mais tarde.' 
+        });
+    }
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro no servidor ao solicitar recuperação de senha.' });
+  }
+};
+
+// FUNÇÃO CORRIGIDA: exports.resetPassword
+exports.resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword) {
+    return res.status(400).json({ message: 'Por favor, forneça o token e a nova senha.' });
+  }
+
+  try {
+    const [users] = await pool.query(
+      'SELECT id FROM users WHERE reset_token = ? AND reset_token_expires > NOW()',
+      [token]
+    );
+    
+    if (users.length === 0) {
+      return res.status(400).json({ message: 'Token inválido ou expirado.' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    await pool.query(
+      'UPDATE users SET password = ?, reset_token = NULL, reset_token_expires = NULL WHERE reset_token = ?',
+      [hashedPassword, token]
+    );
+
+    res.json({ message: 'Senha redefinida com sucesso!' });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro no servidor ao redefinir a senha.' });
+  }
+};
+
+
+exports.getMyStudents = async (req, res) => {
+    try {
+        const teacherId = req.user.id;
+        const [students] = await pool.query('SELECT id, name, email FROM users WHERE teacher_id = ? AND role = "ALUNO"', [teacherId]);
+        res.json(students);
+    } catch (error) {
+        console.error('Erro ao buscar meus alunos:', error);
+        res.status(500).json({ message: 'Erro no servidor.' });
+    }
 };

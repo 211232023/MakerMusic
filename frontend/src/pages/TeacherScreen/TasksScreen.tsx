@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, FlatList } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
-import { getStudentsByTeacher, createTask } from '../../services/api';
+import { getMyStudents, createTask } from '../../services/api';
 import { Picker } from '@react-native-picker/picker';
 
 type Student = {
@@ -25,13 +25,14 @@ export default function TasksScreen() {
     if (user && token && user.role === 'PROFESSOR') {
       try {
         setIsLoadingStudents(true);
-        const studentList = await getStudentsByTeacher(user.id, token);
+        const studentList = await getMyStudents(token); // CÓDIGO NOVO
         
-        if (Array.isArray(studentList)) {
+        if (Array.isArray(studentList) && studentList.length > 0) {
             setStudents(studentList);
+          // Não define o primeiro aluno como selecionado por padrão 
         } else {
             setStudents([]);
-        }
+          }
       } catch (error) {
         console.error("Erro ao carregar alunos:", error);
         Alert.alert("Erro", "Não foi possível carregar a sua lista de alunos.");
@@ -71,7 +72,7 @@ export default function TasksScreen() {
       if (response.message === 'Tarefa criada com sucesso!') {
         Alert.alert('Sucesso', 'Tarefa atribuída com sucesso!');
         setTitle('');
-        setSelectedStudentId(null);
+        setSelectedStudentId(null);;
       } else {
         Alert.alert('Erro', response.message || 'Não foi possível criar a tarefa.');
       }
@@ -97,19 +98,19 @@ export default function TasksScreen() {
 
       <Text style={styles.label}>Atribuir para o Aluno:</Text>
       
-      {isLoadingStudents ? (
+       {isLoadingStudents ? (
         <ActivityIndicator size="large" color="#d4af37" />
       ) : (
         <View style={styles.pickerContainer}>
             <Picker
                 selectedValue={selectedStudentId}
-                onValueChange={(itemValue) => setSelectedStudentId(itemValue)}
+                onValueChange={(itemValue: string | null) => setSelectedStudentId(itemValue)}
                 style={styles.picker}
                 dropdownIconColor={'#FFFFFF'}
             >
                 <Picker.Item label="Selecione um aluno..." value={null} color="#aaa" />
                 {students.map(student => (
-                    <Picker.Item key={student.id} label={student.name} value={student.id} />
+                    <Picker.Item key={student.id} label={student.name} value={student.id} color="#fff" />
                 ))}
             </Picker>
         </View>

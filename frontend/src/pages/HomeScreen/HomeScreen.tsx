@@ -13,7 +13,9 @@ export default function HomeScreen() {
   const { user, logout, token } = useUser(); 
 
   const handleLogout = () => {
-    Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
+    console.log("LOGOUT: Botão 'sair' clicado. chamando logout diretamente" );
+    logout(); // Chama a função de logout diretamente
+
   };
 
   const handleStudentChat = async () => {

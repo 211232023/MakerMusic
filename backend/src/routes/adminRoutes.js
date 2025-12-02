@@ -10,4 +10,8 @@ router.post('/assign-teacher', authMiddleware, authorize(['ADMIN']), adminContro
 
 router.get('/teacher/:teacherId/students', authMiddleware, authorize(['ADMIN', 'PROFESSOR']), adminController.getStudentsByTeacher);
 
+const userController = require('../controllers/userController'); // Adicionar esta linha
+
+router.post('/register', authMiddleware, authorize(['ADMIN']), userController.registerUserByAdmin); // NOVO: Rota de cadastro por Admin
+
 module.exports = router;

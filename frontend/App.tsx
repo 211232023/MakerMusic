@@ -2,12 +2,14 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { UserProvider, useUser } from './src/pages/src/UserContext';
-
+import AdminRegisterUserScreen from './src/pages/AdminScreen/AdminRegisterUserScreen';
 // Telas de Autenticação
 import LoginScreen from './src/pages/HomeScreen/LoginSreen';
 import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
 //terceira alteração de recuperação de senha
 import ForgotPasswordScreen from './src/pages/HomeScreen/ForgotPasswordScreen';
+import ResetPasswordScreen from './src/pages/HomeScreen/ResetPasswordScreen';
+
 // Telas Principais por Papel
 import HomeScreen from './src/pages/HomeScreen/HomeScreen';
 import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
@@ -56,6 +58,7 @@ function AppNavigator() {
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
           <Stack.Screen name="AdminFinance" component={AdminFinanceScreen} options={{ headerShown: false }} />
+          <Stack.Screen name="AdminRegisterUser" component={AdminRegisterUserScreen} /> 
         </>
       ) : (
         <>
@@ -63,6 +66,7 @@ function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
           {/* Alteração da recuperação de senha */}
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
         </>
       )}
     </Stack.Navigator>

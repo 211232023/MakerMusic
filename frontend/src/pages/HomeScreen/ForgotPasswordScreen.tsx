@@ -1,25 +1,53 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
-import { updatePassword } from "../../services/api";
+import { forgotPassword } from "../../services/api";
+import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../src/types/navigation";
+
+type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>;
 
 export default function ForgotPasswordScreen() {
+  const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
   const [email, setEmail] = useState("");
-  const [newPassword, setNewPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleResetPassword = async () => {
-    if (!email.trim() || !newPassword.trim()) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert("Erro", "Por favor, digite seu e-mail.");
       return;
     }
 
     setIsLoading(true);
+    setMessage("");
 
-    try {
-      const response = await updatePassword({ email, newPassword });
-      Alert.alert("Aviso", response.message);
+   try {
+      const response = await forgotPassword(email);
+      
+      if (response.message) {
+        setMessage(response.message);
+        
+        // --- MUDANÇA AQUI ---
+        if (response.message.includes('enviado para o seu e-mail')) {
+            
+            Alert.alert("Sucesso", "Token enviado. Você será redirecionado para redefinir a senha.");
+            
+            
+            navigation.navigate('ResetPassword', { email: email }); 
+        } else {
+           
+            Alert.alert("Aviso", response.message);
+        }
+
+      } else {
+        Alert.alert("Erro", "Não foi possível solicitar a recuperação de senha.");
+      }
+      
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível atualizar a senha.");
+      console.error("Erro ao solicitar recuperação:", error);
+      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
     }
 
     setIsLoading(false);
@@ -28,6 +56,9 @@ export default function ForgotPasswordScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recuperar Senha</Text>
+      <Text style={styles.subtitle}>
+        Digite seu e-mail para receber o link de redefinição de senha.
+      </Text>
 
       <TextInput
         placeholder="Digite seu e-mail"
@@ -39,22 +70,19 @@ export default function ForgotPasswordScreen() {
         autoCapitalize="none"
       />
 
-      <TextInput
-        placeholder="Nova senha"
-        placeholderTextColor="#aaa"
-        value={newPassword}
-        onChangeText={setNewPassword}
-        style={styles.input}
-        secureTextEntry
-      />
+       {message ? <Text style={styles.messageText}>{message}</Text> : null}
 
       {isLoading ? (
         <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
       ) : (
-        <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-          <Text style={styles.buttonText}>Atualizar senha</Text>
+        <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
+          <Text style={styles.buttonText}>Enviar Link de Redefinição</Text>
         </TouchableOpacity>
       )}
+
+      <TouchableOpacity onPress={() => navigation.replace('Login')}>
+        <Text style={styles.backToLoginText}>Voltar para o Login</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -71,8 +99,13 @@ const styles = StyleSheet.create({
     color: "#f6e27f",
     fontSize: 28,
     fontWeight: "bold",
+    marginBottom: 10,
+  },
+  subtitle: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: 'center',
     marginBottom: 30,
-    marginTop: 40,
   },
   input: {
     width: "100%",
@@ -96,4 +129,15 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
+  messageText: {
+    color: "#4CAF50",
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  backToLoginText: {
+    color: "#d4af37",
+    marginTop: 20,
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 });

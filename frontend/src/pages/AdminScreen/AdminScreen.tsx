@@ -11,9 +11,10 @@ export default function AdminScreen() {
   const navigation = useNavigation<AdminScreenNavigationProp>();
   const { user, logout } = useUser();
 
-  const handleLogout = () => {
-    Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
-  };
+    const handleLogout = () => {
+    console.log("LOGOUT: Botão 'Sair' clicado. Chamando logout diretamente.");
+    logout(); // Chama a função de logout diretamente
+  };                                                                                                                                                                         
 
   return (
     <View style={styles.container}>
@@ -21,9 +22,13 @@ export default function AdminScreen() {
       <Text style={styles.userName}>Bem-vindo, {user?.name}</Text>
 
       {/* --- CORREÇÃO 1: Nome da rota e remoção de parâmetro --- */}
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Entities')}>
-        <Text style={styles.buttonText}>Ver Utilizadores</Text>
-      </TouchableOpacity>
+	      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AdminRegisterUser')}>
+	        <Text style={styles.buttonText}>Cadastrar Novo Usuário</Text>
+	      </TouchableOpacity>
+
+	      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Entities')}>
+	        <Text style={styles.buttonText}>Ver Utilizadores</Text>
+	      </TouchableOpacity>
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AdminFinance')}>
         <Text style={styles.buttonText}>Gerir Financeiro</Text>

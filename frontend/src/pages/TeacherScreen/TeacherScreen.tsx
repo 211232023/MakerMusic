@@ -12,7 +12,9 @@ export default function TeacherScreen() {
   const { user, logout } = useUser();
 
   const handleLogout = () => {
-    Alert.alert("Sair", "Tem a certeza?", [{ text: "Cancelar" }, { text: "Sair", onPress: logout }]);
+    console.log("LOGOUT: Botão 'sair' clicado. chamando logout diretamente" );
+    logout(); // Chama a função de logout diretamente
+
   };
 
   if (user?.role !== 'PROFESSOR') {
