@@ -24,7 +24,7 @@ export default function FinanceScreen() {
         <Text style={styles.buttonText}>Lançar Mensalidade</Text>
       </TouchableOpacity>
 
-      {/* Futuras funcionalidades podem ser adicionadas aqui */}
+      {/* Futuras funcionalidades podem ser adicionadas aqui . Atualização*/}
 
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
         <Text style={styles.buttonText}>Sair</Text>
