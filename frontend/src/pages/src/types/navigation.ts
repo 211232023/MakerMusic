@@ -1,6 +1,8 @@
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
+  ResetPassword: { email: string };
 
   // Telas principais dos perfis
   Home: undefined;
@@ -19,6 +21,7 @@ export type RootStackParamList = {
   AdminFinance: undefined;
   AddScheduleScreen:undefined;
 
+  AdminRegisterUser: undefined;
   // Telas de Chat
   Chat: { otherUserId: string; otherUserName: string; };
   TeacherChatList: undefined;

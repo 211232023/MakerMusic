@@ -23,14 +23,14 @@ export default function RegisterScreen() {
       name,
       email,
       password,
-      role: "ALUNO",  
+      role: "ALUNO",  // Fixo: Apenas ALUNO no cadastro público
     };
 
     try {
       const response = await registerUser(userData);
 
       if (response.userId) { 
-        Alert.alert("Sucesso", "Conta criada com sucesso! Você já pode fazer login.");
+        Alert.alert("Sucesso", "Conta  de Aluno criada com sucesso! Você já pode fazer login.");
         navigation.goBack();
       } else {
         Alert.alert("Erro de Cadastro", response.message || "Ocorreu um erro ao criar a conta.");
@@ -45,7 +45,7 @@ export default function RegisterScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Cadastre-se</Text>
+      <Text style={styles.title}>Cadastre-se como Aluno</Text> 
 
       <TextInput
         style={styles.input}
@@ -78,7 +78,7 @@ export default function RegisterScreen() {
         <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
       ) : (
         <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Criar Conta</Text>
+          <Text style={styles.buttonText}>Criar Conta de Aluno</Text>
         </TouchableOpacity>
       )}
 

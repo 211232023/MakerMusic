@@ -1,4 +1,4 @@
-const BASE_URL = 'http://10.90.0.126:3000/api';
+const BASE_URL = 'http://localhost:3000/api';
 
 export const registerUser = async (userData) => {
   try {
@@ -32,6 +32,56 @@ export const loginUser = async (credentials) => {
   }
 };
 
+//Novas Funções de rexuperação de senha
+export async function forgotPassword(email) {
+  try {
+    const response = await fetch(`${BASE_URL}/users/forgot-password`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+
+    return await response.json();
+
+  } catch (error) {
+    console.error("Erro ao solicitar recuperação de senha:", error);
+    return { message: "Erro de conexão com o servidor" };
+  }
+}
+
+export async function resetPassword({ token, newPassword }) {
+  try {
+    const response = await fetch(`${BASE_URL}/users/reset-password`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token, newPassword })
+    });
+
+    return await response.json();
+
+  } catch (error) {
+    console.error("Erro ao redefinir senha:", error);
+    return { message: "Erro de conexão com o servidor" };
+  }
+}
+
+export async function updatePassword({ email, newPassword }) {
+  try {
+    // Nota: Esta rota está sendo substituída pelo fluxo de token/resetPassword
+    const response = await fetch("http://localhost:3000/update-password", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, newPassword })
+    });
+
+    return await response.json();
+
+  } catch (error) {
+    console.error("Erro ao atualizar senha:", error);
+    return { message: "Erro de conexão com o servidor" };
+  }
+}
+
 export const getMyTasks = async () => {
   try {
     const headers = await createAuthHeaders();
@@ -46,12 +96,13 @@ export const getMyTasks = async () => {
   }
 };
 
-export const getMyStudents = async () => {
+export const getMyStudents = async (token) => { // AGORA ACEITA O TOKEN
   try {
-    const headers = await createAuthHeaders();
-    const response = await fetch(`${BASE_URL}/tasks/students`, {
+    const response = await fetch(`${BASE_URL}/users/my-students`, {
       method: 'GET',
-      headers: headers,
+      headers: {
+        'Authorization': `Bearer ${token}`, // USA O TOKEN PASSADO
+      },
     });
     return response.json();
   } catch (error) {
@@ -257,5 +308,23 @@ export const getMyPayments = async (token) => {
   } catch (error) {
     console.error('Erro ao buscar pagamentos:', error);
     return [];
+  }
+};
+
+//Nova função para o admin
+export const registerUserByAdmin = async (userData, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/admin/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro no registo por Admin:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
   }
 };

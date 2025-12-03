@@ -74,7 +74,7 @@ export default function AdminFinanceScreen() {
         onValueChange={(value) => setSelectedStudentId(value)}
         items={studentItems}
         style={pickerSelectStyles}
-        placeholder={{ label: 'Selecione um aluno...', value: null }}
+        placeholder={{ label: 'Selecione um aluno', value: null }}
         value={selectedStudentId}
       />
 

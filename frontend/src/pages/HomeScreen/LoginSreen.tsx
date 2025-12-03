@@ -7,6 +7,7 @@ import { useUser } from "../src/UserContext";
 import { RootStackParamList } from "../src/types/navigation"; 
 import { loginUser } from "../../services/api";
 
+
 // A correção principal está aqui: "export default function..."
 export default function LoginScreen() {
   const { login } = useUser();
@@ -69,9 +70,15 @@ export default function LoginScreen() {
         </TouchableOpacity>
       )}
 
+      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
+        <Text style={styles.registerText}>
+          Esqueceu a senha? <Text style={styles.registerLink}>Recupere aqui</Text>
+        </Text>
+      </TouchableOpacity>
+
       <TouchableOpacity onPress={() => navigation.navigate("Register")}>
         <Text style={styles.registerText}>
-          Não tem uma conta? <Text style={styles.registerLink}>Cadastre-se</Text>
+          Não tem uma conta? <Text style={styles.registerLink}>Cadastre-se como Aluno</Text>
         </Text>
       </TouchableOpacity>
     </View>
@@ -84,6 +91,9 @@ const styles = StyleSheet.create({
   input: { width: "100%", backgroundColor: "#333", color: "#fff", padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 16 },
   button: { backgroundColor: "#d4af37", padding: 15, borderRadius: 10, width: "100%", alignItems: "center", marginTop: 20 },
   buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 18 },
+  // INÍCIO DOS ESTILOS ADICIONADOS
+  forgotPasswordContainer: { width: "100%", alignItems: "flex-end", marginTop: 10 },
+  forgotPasswordText: { color: "#d4af37", fontSize: 14, fontWeight: "bold" },
   registerText: { color: "#fff", marginTop: 20, fontSize: 14 },
   registerLink: { color: "#d4af37", fontWeight: "bold" },
 });

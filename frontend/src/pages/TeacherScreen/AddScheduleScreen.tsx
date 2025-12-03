@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
-import { getStudentsByTeacher, createSchedule } from '../../services/api';
+import { getMyStudents, createSchedule } from '../../services/api';
 import { Picker } from '@react-native-picker/picker';
 
 type Student = {
@@ -26,12 +26,13 @@ export default function AddScheduleScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
 
-  const loadStudents = useCallback(async () => {
+   const loadStudents = useCallback(async () => {
     if (user && token) {
       setIsLoadingStudents(true);
-      const studentList = await getStudentsByTeacher(user.id, token);
-      if (Array.isArray(studentList)) {
+      const studentList = await getMyStudents(token);
+      if (Array.isArray(studentList) && studentList.length > 0) {
         setStudents(studentList);
+        // Não define o primeiro aluno como selecionado por padrão
       }
       setIsLoadingStudents(false);
     }
@@ -75,17 +76,17 @@ export default function AddScheduleScreen() {
         <ActivityIndicator color="#d4af37" />
       ) : (
         <>
-          <Text style={styles.label}>Aluno</Text>
+           <Text style={styles.label}>Aluno</Text>
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedStudentId}
-              onValueChange={(itemValue) => setSelectedStudentId(itemValue)}
+              onValueChange={(itemValue: string | null) => setSelectedStudentId(itemValue)}
               style={styles.picker}
               dropdownIconColor="#fff"
             >
               <Picker.Item label="Selecione um aluno..." value={null} color="#aaa" />
               {students.map((student) => (
-                <Picker.Item key={student.id} label={student.name} value={student.id} />
+                <Picker.Item key={student.id} label={student.name} value={student.id} color="#fff" />
               ))}
             </Picker>
           </View>
@@ -98,8 +99,8 @@ export default function AddScheduleScreen() {
               style={styles.picker}
               dropdownIconColor="#fff"
             >
-              {DAYS_OF_WEEK.map((day) => (
-                <Picker.Item key={day} label={day} value={day} />
+               {DAYS_OF_WEEK.map((day) => (
+                <Picker.Item key={day} label={day} value={day} color="#fff" />
               ))}
             </Picker>
           </View>
