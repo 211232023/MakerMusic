@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, Tex
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyStudents, createSchedule } from '../../services/api';
-import { Picker } from '@react-native-picker/picker';
+import CustomPicker from '../../components/CustomPicker';
 
 type Student = {
   id: string;
@@ -20,7 +20,6 @@ export default function AddScheduleScreen() {
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string>(DAYS_OF_WEEK[0]);
   const [startTime, setStartTime] = useState(''); 
-  
   const [endTime, setEndTime] = useState('');    
 
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +31,6 @@ export default function AddScheduleScreen() {
       const studentList = await getMyStudents(token);
       if (Array.isArray(studentList) && studentList.length > 0) {
         setStudents(studentList);
-        // Não define o primeiro aluno como selecionado por padrão
       }
       setIsLoadingStudents(false);
     }
@@ -68,6 +66,22 @@ export default function AddScheduleScreen() {
     }
   };
 
+  // Preparar itens para os CustomPickers
+  const studentPickerItems = [
+    { label: 'Selecione um aluno...', value: null, color: '#aaa' },
+    ...students.map(student => ({
+      label: student.name,
+      value: student.id,
+      color: '#fff'
+    }))
+  ];
+
+  const dayPickerItems = DAYS_OF_WEEK.map(day => ({
+    label: day,
+    value: day,
+    color: '#fff'
+  }));
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Criar Novo Horário</Text>
@@ -77,33 +91,19 @@ export default function AddScheduleScreen() {
       ) : (
         <>
            <Text style={styles.label}>Aluno</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedStudentId}
-              onValueChange={(itemValue: string | null) => setSelectedStudentId(itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#fff"
-            >
-              <Picker.Item label="Selecione um aluno..." value={null} color="#aaa" />
-              {students.map((student) => (
-                <Picker.Item key={student.id} label={student.name} value={student.id} color="#fff" />
-              ))}
-            </Picker>
-          </View>
+          <CustomPicker
+            selectedValue={selectedStudentId}
+            onValueChange={setSelectedStudentId}
+            items={studentPickerItems}
+            placeholder="Selecione um aluno..."
+          />
 
           <Text style={styles.label}>Dia da Semana</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedDay}
-              onValueChange={(itemValue) => setSelectedDay(itemValue)}
-              style={styles.picker}
-              dropdownIconColor="#fff"
-            >
-               {DAYS_OF_WEEK.map((day) => (
-                <Picker.Item key={day} label={day} value={day} color="#fff" />
-              ))}
-            </Picker>
-          </View>
+          <CustomPicker
+            selectedValue={selectedDay}
+            onValueChange={(value) => setSelectedDay(value || DAYS_OF_WEEK[0])}
+            items={dayPickerItems}
+          />
 
           <Text style={styles.label}>Hora de Início</Text>
           <TextInput
@@ -149,8 +149,6 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
   label: { fontSize: 18, color: '#fff', marginBottom: 10, alignSelf: 'flex-start' },
   input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
-  pickerContainer: { width: '100%', backgroundColor: '#333', borderRadius: 10, marginBottom: 20 },
-  picker: { color: '#fff', height: 60 },
   button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginTop: 20 },
   buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
   backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },

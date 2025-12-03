@@ -299,6 +299,18 @@ export const createOrUpdatePayment = async (paymentData, token) => {
   }
 };
 
+export const getAllStudentsFinance = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/finance/students`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar todos os alunos para o financeiro:', error);
+    return [];
+  }
+};
+
 export const getMyPayments = async (token) => {
   try {
     const response = await fetch(`${BASE_URL}/finance/my-payments`, {

@@ -22,6 +22,18 @@ exports.createOrUpdatePayment = async (req, res) => {
   }
 };
 
+exports.getAllStudents = async (req, res) => {
+    try {
+        const [students] = await pool.query(
+            'SELECT id, name, email FROM users WHERE role = "ALUNO" ORDER BY name ASC'
+        );
+        res.json(students);
+    } catch (error) {
+        console.error('Erro ao buscar todos os alunos:', error);
+        res.status(500).json({ message: 'Erro no servidor ao buscar alunos.' });
+    }
+};
+
 exports.getMyPayments = async (req, res) => {
     const studentId = req.user.id;
     try {

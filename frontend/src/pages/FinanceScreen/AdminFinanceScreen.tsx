@@ -2,7 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
-import { getAllUsers, createOrUpdatePayment } from '../../services/api';
+import { getAllUsers, createOrUpdatePayment, getAllStudentsFinance } from '../../services/api';
 import RNPickerSelect from 'react-native-picker-select'; // MUDANÇA: Importado RNPickerSelect
 
 type User = { id: string; name: string; role: string; };
@@ -18,9 +18,10 @@ export default function AdminFinanceScreen() {
 
   const fetchStudents = useCallback(async () => {
     if (token) {
-      const allUsers = await getAllUsers(token);
-      if (Array.isArray(allUsers)) {
-        setStudents(allUsers.filter(u => u.role === 'ALUNO'));
+      // Usando a nova função que busca todos os alunos diretamente da rota /finance/students
+      const allStudents = await getAllStudentsFinance(token);
+      if (Array.isArray(allStudents)) {
+        setStudents(allStudents);
       }
     }
   }, [token]);
@@ -74,7 +75,7 @@ export default function AdminFinanceScreen() {
         onValueChange={(value) => setSelectedStudentId(value)}
         items={studentItems}
         style={pickerSelectStyles}
-        placeholder={{ label: 'Selecione um aluno', value: null }}
+        placeholder={{ label: 'Selecione um aluno...', value: null }}
         value={selectedStudentId}
       />
 
@@ -101,7 +102,7 @@ export default function AdminFinanceScreen() {
         <ActivityIndicator size="large" color="#d4af37" />
       ) : (
         <TouchableOpacity style={styles.button} onPress={handleSavePayment}>
-          <Text style={styles.buttonText}>Lançar Pagamento</Text>
+          <Text style={styles.buttonText}>Lançar Mensalidade</Text>
         </TouchableOpacity>
       )}
 

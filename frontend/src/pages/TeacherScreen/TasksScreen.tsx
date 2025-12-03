@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityInd
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyStudents, createTask } from '../../services/api';
-import { Picker } from '@react-native-picker/picker';
+import CustomPicker from '../../components/CustomPicker';
 
 type Student = {
   id: string;
@@ -25,11 +25,10 @@ export default function TasksScreen() {
     if (user && token && user.role === 'PROFESSOR') {
       try {
         setIsLoadingStudents(true);
-        const studentList = await getMyStudents(token); // CÓDIGO NOVO
+        const studentList = await getMyStudents(token);
         
         if (Array.isArray(studentList) && studentList.length > 0) {
             setStudents(studentList);
-          // Não define o primeiro aluno como selecionado por padrão 
         } else {
             setStudents([]);
           }
@@ -72,7 +71,7 @@ export default function TasksScreen() {
       if (response.message === 'Tarefa criada com sucesso!') {
         Alert.alert('Sucesso', 'Tarefa atribuída com sucesso!');
         setTitle('');
-        setSelectedStudentId(null);;
+        setSelectedStudentId(null);
       } else {
         Alert.alert('Erro', response.message || 'Não foi possível criar a tarefa.');
       }
@@ -83,6 +82,16 @@ export default function TasksScreen() {
         setIsLoading(false);
     }
   };
+
+  // Preparar itens para o CustomPicker
+  const pickerItems = [
+    { label: 'Selecione um aluno...', value: null, color: '#aaa' },
+    ...students.map(student => ({
+      label: student.name,
+      value: student.id,
+      color: '#fff'
+    }))
+  ];
 
   return (
     <View style={styles.container}>
@@ -101,19 +110,12 @@ export default function TasksScreen() {
        {isLoadingStudents ? (
         <ActivityIndicator size="large" color="#d4af37" />
       ) : (
-        <View style={styles.pickerContainer}>
-            <Picker
-                selectedValue={selectedStudentId}
-                onValueChange={(itemValue: string | null) => setSelectedStudentId(itemValue)}
-                style={styles.picker}
-                dropdownIconColor={'#FFFFFF'}
-            >
-                <Picker.Item label="Selecione um aluno..." value={null} color="#aaa" />
-                {students.map(student => (
-                    <Picker.Item key={student.id} label={student.name} value={student.id} color="#fff" />
-                ))}
-            </Picker>
-        </View>
+        <CustomPicker
+          selectedValue={selectedStudentId}
+          onValueChange={setSelectedStudentId}
+          items={pickerItems}
+          placeholder="Selecione um aluno..."
+        />
       )}
 
       {isLoading ? (
@@ -136,17 +138,6 @@ const styles = StyleSheet.create({
     title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
     label: { fontSize: 18, color: '#fff', marginBottom: 10, alignSelf: 'flex-start' },
     input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
-    pickerContainer: {
-        width: '100%',
-        backgroundColor: '#333',
-        borderRadius: 10,
-        marginBottom: 20,
-        overflow: 'hidden'
-    },
-    picker: {
-        color: '#fff',
-        height: 60, // Altura padrão para inputs
-    },
     button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
     buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
     backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },

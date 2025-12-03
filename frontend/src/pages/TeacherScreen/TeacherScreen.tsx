@@ -11,11 +11,11 @@ export default function TeacherScreen() {
   const navigation = useNavigation<TeacherScreenNavigationProp>();
   const { user, logout } = useUser();
 
-  const handleLogout = () => {
-    console.log("LOGOUT: Botão 'sair' clicado. chamando logout diretamente" );
+   const handleLogout = () => {
+    console.log("LOGOUT: Botão 'Sair' clicado. Chamando logout diretamente.");
     logout(); // Chama a função de logout diretamente
-
   };
+
 
   if (user?.role !== 'PROFESSOR') {
     return (
@@ -47,7 +47,7 @@ export default function TeacherScreen() {
       </TouchableOpacity>
       
       <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-          <Text style={styles.buttonText}>Sair</Text>
+        <Text style={styles.buttonText}>Sair</Text>
       </TouchableOpacity>
     </View>
   );

@@ -3,17 +3,20 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { UserProvider, useUser } from './src/pages/src/UserContext';
 import AdminRegisterUserScreen from './src/pages/AdminScreen/AdminRegisterUserScreen';
+
 // Telas de Autenticação
 import LoginScreen from './src/pages/HomeScreen/LoginSreen';
 import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
 //terceira alteração de recuperação de senha
 import ForgotPasswordScreen from './src/pages/HomeScreen/ForgotPasswordScreen';
-import ResetPasswordScreen from './src/pages/HomeScreen/ResetPasswordScreen';
+import ResetPasswordScreen from './src/pages/HomeScreen/ResetPasswordScreen.tsx';
 
 // Telas Principais por Papel
 import HomeScreen from './src/pages/HomeScreen/HomeScreen';
 import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
 import AdminScreen from './src/pages/AdminScreen/AdminScreen';
+import FinanceScreen from './src/pages/FinanceScreen/FinanceScreen';
+import MainScreenRouter from './src/pages/src/MainScreenRouter';
 
 // Telas Específicas
 import StudentTasksScreen from './src/pages/StudentScreen/StudentTasksScreen';
@@ -23,7 +26,7 @@ import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScre
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
 import AddScheduleScreen from "./src/pages/TeacherScreen/AddScheduleScreen";
-import AdminFinanceScreen from './src/pages/AdminScreen/AdminFinanceScreen';
+import AdminFinanceScreen from './src/pages/FinanceScreen/AdminFinanceScreen';
 
 // Telas Comuns
 import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
@@ -41,10 +44,8 @@ function AppNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
         <>
-          {/* Telas Iniciais de cada papel */}
-          {user.role === 'ALUNO' && <Stack.Screen name="Home" component={HomeScreen} />}
-          {user.role === 'PROFESSOR' && <Stack.Screen name="Teacher" component={TeacherScreen} />}
-          {user.role === 'ADMIN' && <Stack.Screen name="Admin" component={AdminScreen} />}
+          {/* Tela principal que roteia para o papel correto */}
+          <Stack.Screen name="MainRouter" component={MainScreenRouter} />
           
           {/* Telas acessíveis após o login */}
           <Stack.Screen name="StudentTasks" component={StudentTasksScreen} />
@@ -58,7 +59,7 @@ function AppNavigator() {
           <Stack.Screen name="Chat" component={ChatScreen} />
           <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
           <Stack.Screen name="AdminFinance" component={AdminFinanceScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="AdminRegisterUser" component={AdminRegisterUserScreen} /> 
+          <Stack.Screen name="AdminRegisterUser" component={AdminRegisterUserScreen} />
         </>
       ) : (
         <>
@@ -66,7 +67,7 @@ function AppNavigator() {
           <Stack.Screen name="Register" component={RegisterScreen} />
           {/* Alteração da recuperação de senha */}
           <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} /> 
         </>
       )}
     </Stack.Navigator>

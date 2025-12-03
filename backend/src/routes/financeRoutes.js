@@ -8,4 +8,6 @@ router.post('/', authMiddleware, authorize(['ADMIN', 'FINANCEIRO']), financeCont
 
 router.get('/my-payments', authMiddleware, authorize(['ALUNO']), financeController.getMyPayments);
 
+router.get('/students', authMiddleware, authorize(['ADMIN', 'FINANCEIRO']), financeController.getAllStudents);
+
 module.exports = router;
