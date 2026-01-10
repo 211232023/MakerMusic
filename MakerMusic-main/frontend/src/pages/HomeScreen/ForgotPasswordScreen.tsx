@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { forgotPassword } from "../../services/api";
 import { useNavigation } from "@react-navigation/native";
+import { useToast } from "../../contexts/ToastContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../src/types/navigation";
 
@@ -9,6 +10,7 @@ type ForgotPasswordScreenNavigationProp = NativeStackNavigationProp<RootStackPar
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation<ForgotPasswordScreenNavigationProp>();
+  const { showError, showSuccess, showWarning } = useToast();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
@@ -16,7 +18,7 @@ export default function ForgotPasswordScreen() {
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
-      Alert.alert("Erro", "Por favor, digite seu e-mail.");
+      showError("Por favor, digite seu e-mail.");
       return;
     }
 
@@ -31,23 +33,21 @@ export default function ForgotPasswordScreen() {
         
         // --- MUDANÇA AQUI ---
         if (response.message.includes('enviado para o seu e-mail')) {
-            
-            Alert.alert("Sucesso", "Token enviado. Você será redirecionado para redefinir a senha.");
-            
-            
-            navigation.navigate('ResetPassword', { email: email }); 
+            showSuccess("Token enviado. Você será redirecionado para redefinir a senha.");
+            setTimeout(() => {
+              navigation.navigate('ResetPassword', { email: email });
+            }, 1500);
         } else {
-           
-            Alert.alert("Aviso", response.message);
+            showWarning(response.message);
         }
 
       } else {
-        Alert.alert("Erro", "Não foi possível solicitar a recuperação de senha.");
+        showError("Não foi possível solicitar a recuperação de senha.");
       }
       
     } catch (error) {
       console.error("Erro ao solicitar recuperação:", error);
-      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+      showError("Não foi possível conectar ao servidor.");
     }
 
     setIsLoading(false);
@@ -141,5 +141,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
-
-

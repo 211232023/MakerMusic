@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useUser } from '../src/UserContext';
 import { getSchedulesForTeacherByDay, markAttendance } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 
 type ScheduleItem = {
@@ -18,6 +19,7 @@ const DAYS_OF_WEEK = ['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO']
 export default function PresencaScreen() {
   const navigation = useNavigation();
   const { user, token } = useUser();
+  const { showError, showSuccess } = useToast();
   const [selectedDay, setSelectedDay] = useState<string>(DAYS_OF_WEEK[0]);
   const [schedules, setSchedules] = useState<ScheduleItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,8 +56,9 @@ export default function PresencaScreen() {
         setSchedules(prev => prev.map(item => 
             item.id === scheduleId ? { ...item, attendance_status: status } : item
         ));
+        showSuccess("Presença registada com sucesso!");
     } else {
-        Alert.alert("Erro", "Não foi possível registar a presença.");
+        showError("Não foi possível registar a presença.");
     }
   };
   
@@ -116,23 +119,99 @@ export default function PresencaScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
-    daySelector: { flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 },
-    dayButton: { padding: 10, borderRadius: 20, backgroundColor: '#333' },
-    selectedDayButton: { backgroundColor: '#d4af37' },
-    dayButtonText: { color: '#fff', fontWeight: 'bold' },
-    scheduleItem: { backgroundColor: '#2a292e', padding: 15, borderRadius: 10, marginBottom: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    studentName: { color: '#fff', fontSize: 16, flex: 1 },
-    timeText: { color: '#ccc', fontSize: 14 },
-    attendanceButtons: { flexDirection: 'row', marginLeft: 10 },
-    statusButton: { width: 30, height: 30, borderRadius: 15, justifyContent: 'center', alignItems: 'center', marginHorizontal: 4, borderWidth: 1, borderColor: '#555' },
-    selectedStatusButton: { borderWidth: 2, borderColor: '#fff' },
-    presente: { backgroundColor: 'green' },
-    ausente: { backgroundColor: 'red' },
-    justificado: { backgroundColor: 'orange' },
-    statusButtonText: { color: '#fff', fontWeight: 'bold' },
-    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 40 },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
+    container: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f', 
+      padding: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      marginTop: 40, 
+      textAlign: 'center' 
+    },
+    daySelector: { 
+      flexDirection: 'row', 
+      justifyContent: 'space-around', 
+      marginBottom: 20 
+    },
+    dayButton: { 
+      padding: 10, 
+      borderRadius: 20, 
+      backgroundColor: '#333' 
+    },
+    selectedDayButton: { 
+      backgroundColor: '#d4af37' 
+    },
+    dayButtonText: { 
+      color: '#fff', 
+      fontWeight: 'bold' 
+    },
+    scheduleItem: { 
+      backgroundColor: '#2a292e', 
+      padding: 15, 
+      borderRadius: 10, 
+      marginBottom: 10, 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center' 
+    },
+    studentName: { 
+      color: '#fff', 
+      fontSize: 16, 
+      flex: 1 
+    },
+    timeText: { 
+      color: '#ccc', 
+      fontSize: 14 
+    },
+    attendanceButtons: { 
+      flexDirection: 'row', 
+      marginLeft: 10 
+    },
+    statusButton: { 
+      width: 30, 
+      height: 30, 
+      borderRadius: 15, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      marginHorizontal: 4, 
+      borderWidth: 1, 
+      borderColor: '#555' 
+    },
+    selectedStatusButton: { 
+      borderWidth: 2, 
+      borderColor: '#fff' 
+    },
+    presente: { 
+      backgroundColor: 'green' 
+    },
+    ausente: { 
+      backgroundColor: 'red' 
+    },
+    justificado: { 
+      backgroundColor: 'orange' 
+    },
+    statusButtonText: { 
+      color: '#fff', 
+      fontWeight: 'bold' 
+    },
+    emptyText: { 
+      color: '#aaa', 
+      fontStyle: 'italic', 
+      textAlign: 'center', 
+      marginTop: 40 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 50, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold' 
+    },
 });

@@ -1,152 +1,37 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, ViewStyle, TextStyle } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../src/types/navigation";
 import { registerUserByAdmin } from "../../services/api";
-import { useUser } from "../src/UserContext"; // Para pegar o token do Admin
+import { useUser } from "../src/UserContext";
+import CustomPicker from "../../components/CustomPicker";
+import { useToast } from "../../contexts/ToastContext";
 
-export default function AdminRegisterUserScreen() {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
-  const { user, token } = useUser(); // Pega o token do Admin logado
-  
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<"ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Garante que apenas Admins possam usar esta tela
-  if (user?.role !== 'ADMIN') {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Acesso Negado</Text>
-        <Text style={styles.errorText}>Apenas administradores podem acessar esta função.</Text>
-        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
-          <Text style={styles.buttonText}>Voltar</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
-  const handleRegister = async () => {
-    if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
-      return;
-    }
-
-    if (!selectedRole) {
-      Alert.alert("Erro", "Por favor, selecione o tipo de usuário.");
-      return;
-    }
-
-    setIsLoading(true);
-
-    const userData = {
-      name,
-      email,
-      password,
-      role: selectedRole,
-    };
-
-    try {
-      // Usa a nova função de registro por Admin que envia o token
-      const response = await registerUserByAdmin(userData, token);
-
-      if (response.userId) {
-        Alert.alert("Sucesso", `Conta de ${selectedRole} criada com sucesso!`);
-        console.log(`SUCESSO: Conta de ${selectedRole} criada.`);
-        // Limpa os campos após o sucesso
-        setName('');
-        setEmail('');
-        setPassword('');
-        setSelectedRole(null);
-      } else {
-        Alert.alert("Erro de Cadastro", response.message || "Ocorreu um erro ao criar a conta.");
-      }
-    } catch (error) {
-      console.error("Falha no registo:", error);
-      Alert.alert("Erro", "Não foi possível ligar ao servidor. Tente novamente.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const roles = ["ALUNO", "PROFESSOR", "ADMIN", "FINANCEIRO"];
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Cadastrar Novo Usuário</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="Nome Completo"
-        placeholderTextColor="#aaa"
-        value={name}
-        onChangeText={setName}
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-
-      {/* Seção de seleção de tipo de usuário */}
-      <View style={styles.roleContainer}>
-        <Text style={styles.roleTitle}>Selecione o tipo de usuário:</Text>
-        
-        <View style={styles.roleButtonsContainer}>
-          {roles.map((role) => (
-            <TouchableOpacity
-              key={role}
-              style={[
-                styles.roleButton,
-                selectedRole === role && styles.roleButtonSelected
-              ]}
-              onPress={() => setSelectedRole(role as "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO")}
-            >
-              <Text style={[
-                styles.roleButtonText,
-                selectedRole === role && styles.roleButtonTextSelected
-              ]}>
-                {role.charAt(0) + role.slice(1).toLowerCase()}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleRegister}>
-          <Text style={styles.buttonText}>Criar Conta</Text>
-        </TouchableOpacity>
-      )}
-
-      <TouchableOpacity onPress={() => navigation.goBack()}>
-        <Text style={styles.loginText}>
-          <Text style={styles.loginLink}>Voltar</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
+interface Styles {
+  scrollContainer: ViewStyle;
+  container: ViewStyle;
+  title: TextStyle;
+  errorText: TextStyle;
+  input: TextStyle;
+  roleContainer: ViewStyle;
+  roleTitle: TextStyle;
+  roleButtonsContainer: ViewStyle;
+  roleButton: ViewStyle;
+  roleButtonSelected: ViewStyle;
+  roleButtonText: TextStyle;
+  roleButtonTextSelected: TextStyle;
+  extraFields: ViewStyle;
+  button: ViewStyle;
+  buttonText: TextStyle;
+  loginText: TextStyle;
+  loginLink: TextStyle;
 }
 
-const styles = StyleSheet.create({
+const styles = StyleSheet.create<Styles>({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: "#1c1b1f",
+  },
   container: { 
     flex: 1, 
     justifyContent: "center", 
@@ -158,7 +43,8 @@ const styles = StyleSheet.create({
     color: "#f6e27f", 
     fontSize: 32, 
     fontWeight: "bold", 
-    marginBottom: 30 
+    marginBottom: 30,
+    textAlign: 'center'
   },
   errorText: {
     color: '#ff6347',
@@ -175,8 +61,6 @@ const styles = StyleSheet.create({
     marginBottom: 15, 
     fontSize: 16 
   },
-  
-  // Estilos para a seção de seleção de tipo de usuário
   roleContainer: {
     width: "100%",
     marginBottom: 20,
@@ -202,7 +86,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#333",
-    minWidth: '23%', // Para caber 4 em uma linha com margem
+    minWidth: '23%',
   },
   roleButtonSelected: {
     backgroundColor: "#2a2a2a",
@@ -216,7 +100,10 @@ const styles = StyleSheet.create({
   roleButtonTextSelected: {
     color: "#d4af37",
   },
-  
+  extraFields: {
+    width: '100%',
+    marginTop: 10,
+  },
   button: { 
     backgroundColor: "#d4af37", 
     padding: 15, 
@@ -240,3 +127,212 @@ const styles = StyleSheet.create({
     fontWeight: "bold" 
   },
 });
+
+export default function AdminRegisterUserScreen() {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { user, token } = useUser();
+  const { showError, showSuccess } = useToast();
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null>(null);
+  
+  const [studentLevel, setStudentLevel] = useState<string | null>(null);
+  const [instrumentCategory, setInstrumentCategory] = useState<string | null>(null);
+  const [teacherCategory, setTeacherCategory] = useState<string | null>(null);
+  const [teacherLevel, setTeacherLevel] = useState("");
+  
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (user?.role !== 'ADMIN') {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.title}>Acesso Negado</Text>
+        <Text style={styles.errorText}>Apenas administradores podem acessar esta função.</Text>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
+          <Text style={styles.buttonText}>Voltar</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const handleRegister = async () => {
+    if (!name.trim() || !email.trim() || !password.trim()) {
+      showError("Por favor, preencha todos os campos.");
+      return;
+    }
+
+    if (!selectedRole) {
+      showError("Por favor, selecione o tipo de usuário.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    const userData = {
+      name,
+      email,
+      password,
+      role: selectedRole,
+      student_level: selectedRole === 'ALUNO' ? studentLevel : null,
+      instrument_category: selectedRole === 'ALUNO' ? instrumentCategory : null,
+      teacher_category: selectedRole === 'PROFESSOR' ? teacherCategory : null,
+      teacher_level: selectedRole === 'PROFESSOR' ? teacherLevel : null,
+    };
+
+    try {
+      const response = await registerUserByAdmin(userData, token);
+
+      if (response.userId) {
+        showSuccess(`Conta de ${selectedRole} criada com sucesso!`);
+        setName('');
+        setEmail('');
+        setPassword('');
+        setSelectedRole(null);
+        setStudentLevel(null);
+        setInstrumentCategory(null);
+        setTeacherCategory(null);
+        setTeacherLevel("");
+      } else {
+        showError(response.message || "Ocorreu um erro ao criar a conta.");
+      }
+    } catch (error) {
+      console.error("Falha no registo:", error);
+      showError("Não foi possível ligar ao servidor. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const roles = ["ALUNO", "PROFESSOR", "ADMIN", "FINANCEIRO"];
+  
+  const studentLevels = [
+    { label: "Selecione o Nível", value: null },
+    { label: "Iniciante", value: "INICIANTE" },
+    { label: "Intermediário", value: "INTERMEDIARIO" },
+    { label: "Avançado", value: "AVANCADO" },
+  ];
+
+  const instrumentCategories = [
+    { label: "Selecione a Categoria", value: null },
+    { label: "Corda", value: "CORDA" },
+    { label: "Sopro", value: "SOPRO" },
+    { label: "Percussão", value: "PERCUSSAO" },
+    { label: "Eletrônicos", value: "ELETRONICOS" },
+  ];
+
+  const teacherCategories = [
+    { label: "Selecione a Especialidade", value: null },
+    { label: "Corda", value: "CORDA" },
+    { label: "Sopro", value: "SOPRO" },
+    { label: "Percussão", value: "PERCUSSAO" },
+    { label: "Eletrônico", value: "ELETRONICO" },
+  ];
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.container}>
+        <Text style={styles.title}>Cadastrar Novo Usuário</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Nome Completo"
+          placeholderTextColor="#aaa"
+          value={name}
+          onChangeText={setName}
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        <TextInput
+          style={styles.input}
+          placeholder="Senha"
+          placeholderTextColor="#aaa"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+
+        <View style={styles.roleContainer}>
+          <Text style={styles.roleTitle}>Selecione o tipo de usuário:</Text>
+          <View style={styles.roleButtonsContainer}>
+            {roles.map((role) => (
+              <TouchableOpacity
+                key={role}
+                style={[
+                  styles.roleButton,
+                  selectedRole === role && styles.roleButtonSelected
+                ]}
+                onPress={() => setSelectedRole(role as "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO")}
+              >
+                <Text style={[
+                  styles.roleButtonText,
+                  selectedRole === role && styles.roleButtonTextSelected
+                ]}>
+                  {role.charAt(0) + role.slice(1).toLowerCase()}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {selectedRole === 'ALUNO' && (
+          <View style={styles.extraFields}>
+            <Text style={styles.roleTitle}>Informações do Aluno:</Text>
+            <CustomPicker
+              selectedValue={studentLevel}
+              onValueChange={setStudentLevel}
+              items={studentLevels}
+            />
+            <CustomPicker
+              selectedValue={instrumentCategory}
+              onValueChange={setInstrumentCategory}
+              items={instrumentCategories}
+            />
+          </View>
+        )}
+
+        {selectedRole === 'PROFESSOR' && (
+          <View style={styles.extraFields}>
+            <Text style={styles.roleTitle}>Informações do Professor:</Text>
+            <CustomPicker
+              selectedValue={teacherCategory}
+              onValueChange={setTeacherCategory}
+              items={teacherCategories}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Nível (ex: Básico, Escolar, Avançado/Especializado, Acadêmico)"
+              placeholderTextColor="#aaa"
+              value={teacherLevel}
+              onChangeText={setTeacherLevel}
+            />
+          </View>
+        )}
+
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={handleRegister}>
+            <Text style={styles.buttonText}>Criar Conta</Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.loginText}>
+            <Text style={styles.loginLink}>Voltar</Text>
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
+  );
+}

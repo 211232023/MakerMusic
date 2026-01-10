@@ -1,20 +1,22 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../src/UserContext';
-import { RootStackParamList } from '../src/types/navigation'; 
+import { RootStackParamList } from '../src/types/navigation';
 import { getMyTeacher } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
-  const { user, logout, token } = useUser(); 
+  const { user, logout, token, viewRole } = useUser();
+  const { showError, showWarning } = useToast(); 
 
-    const handleLogout = () => {
-    console.log("LOGOUT: Botão 'Sair' clicado. Chamando logout diretamente.");
-    logout(); // Chama a função de logout diretamente
+  const handleLogout = () => {
+    console.log("LOGOUT: Botão 'Sair' clicado.");
+    logout();
   };
 
   const handleStudentChat = async () => {
@@ -24,11 +26,11 @@ export default function HomeScreen() {
         if (teacher && teacher.id) {
           navigation.navigate('Chat', { otherUserId: teacher.id.toString(), otherUserName: teacher.name });
         } else {
-          Alert.alert('Nenhum professor encontrado', 'Você ainda não foi vinculado a um professor.');
+          showWarning('Você ainda não foi vinculado a um professor.');
         }
       } catch (error) {
         console.error("Erro ao buscar professor:", error);
-        Alert.alert('Erro', 'Não foi possível obter os dados do seu professor.');
+        showError('Não foi possível obter os dados do seu professor.');
       }
     }
   };
@@ -56,8 +58,10 @@ export default function HomeScreen() {
         </TouchableOpacity>
         
         <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-        <Text style={styles.buttonText}>Sair</Text>
-      </TouchableOpacity>
+          <Text style={styles.buttonText}>
+            {user?.role === 'ADMIN' && viewRole === 'ALUNO' ? "Voltar ao Painel do Admin" : "Sair"}
+          </Text>
+        </TouchableOpacity>
     </View>
     </SafeAreaView>
   );

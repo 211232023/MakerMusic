@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, Modal, Button } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, Modal, Button } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { useNavigation } from '@react-navigation/native'; // 1. Importe o useNavigation
 import { useUser } from '../src/UserContext';
 import { getAllUsers, assignTeacherToStudent } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 type User = {
   id: string;
@@ -14,8 +15,9 @@ type User = {
 };
 
 export default function ManageUsersScreen() {
-  const navigation = useNavigation(); // 2. Obtenha o objeto de navegação
+  const navigation = useNavigation();
   const { token } = useUser();
+  const { showError, showSuccess } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<User | null>(null);
@@ -42,18 +44,18 @@ export default function ManageUsersScreen() {
 
   const handleAssignTeacher = async () => {
     if (!selectedStudent || !selectedTeacher || !token) {
-      Alert.alert('Erro', 'Selecione um aluno e um professor.');
+      showError('Selecione um aluno e um professor.');
       return;
     }
 
     const response = await assignTeacherToStudent(selectedStudent.id, selectedTeacher, token);
     
     if (response.message === 'Professor vinculado ao aluno com sucesso!') {
-      Alert.alert('Sucesso', response.message);
+      showSuccess(response.message);
       fetchUsers();
       setModalVisible(false);
     } else {
-      Alert.alert('Erro', response.message || 'Não foi possível vincular o professor.');
+      showError(response.message || 'Não foi possível vincular o professor.');
     }
   };
 
@@ -117,19 +119,79 @@ export default function ManageUsersScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
-    userItem: { backgroundColor: '#333', padding: 15, borderRadius: 10, marginBottom: 10 },
-    userName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    userEmail: { color: '#ccc', fontSize: 14 },
-    button: { backgroundColor: '#d4af37', padding: 10, borderRadius: 5, marginTop: 10, alignItems: 'center' },
-    buttonText: { color: '#1c1b1f', fontWeight: 'bold' },
-    modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-    modalView: { width: '80%', backgroundColor: '#333', borderRadius: 20, padding: 35, alignItems: 'center' },
-    modalTitle: { fontSize: 20, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
-    modalStudentName: { fontSize: 18, color: '#f6e27f', marginBottom: 15 },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
+    container: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f', 
+      padding: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      marginTop: 40, 
+      textAlign: 'center' 
+    },
+    userItem: { 
+      backgroundColor: '#333', 
+      padding: 15, 
+      borderRadius: 10, 
+      marginBottom: 10 
+    },
+    userName: { 
+      color: '#fff', 
+      fontSize: 18, 
+      fontWeight: 'bold' 
+    },
+    userEmail: { 
+      color: '#ccc', 
+      fontSize: 14 
+    },
+    button: { 
+      backgroundColor: '#d4af37', 
+      padding: 10, 
+      borderRadius: 5, 
+      marginTop: 10, 
+      alignItems: 'center' 
+    },
+    buttonText: { 
+      color: '#1c1b1f', 
+      fontWeight: 'bold' 
+    },
+    modalContainer: { 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      backgroundColor: 'rgba(0,0,0,0.5)' 
+    },
+    modalView: { 
+      width: '80%', 
+      backgroundColor: '#333', 
+      borderRadius: 20, 
+      padding: 35, 
+      alignItems: 'center' 
+    },
+    modalTitle: { 
+      fontSize: 20, 
+      fontWeight: 'bold', 
+      color: '#fff', 
+      marginBottom: 5 
+    },
+    modalStudentName: { 
+      fontSize: 18, 
+      color: '#f6e27f', 
+      marginBottom: 15 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 50, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold' 
+    },
 });
 
 const pickerSelectStyles = StyleSheet.create({

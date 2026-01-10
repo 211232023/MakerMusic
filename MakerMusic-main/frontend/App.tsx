@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { UserProvider, useUser } from './src/pages/src/UserContext';
+import { ToastProvider } from './src/contexts/ToastContext';
 import AdminRegisterUserScreen from './src/pages/AdminScreen/AdminRegisterUserScreen';
 
 // Telas de Autenticação
@@ -76,10 +77,12 @@ function AppNavigator() {
 
 export default function App() {
   return (
-    <UserProvider>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-    </UserProvider>
+    <ToastProvider>
+      <UserProvider>
+        <NavigationContainer>
+          <AppNavigator />
+        </NavigationContainer>
+      </UserProvider>
+    </ToastProvider>
   );
 }

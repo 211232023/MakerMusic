@@ -9,7 +9,7 @@ type FinanceScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>
 
 export default function FinanceScreen() {
   const navigation = useNavigation<FinanceScreenNavigationProp>();
-  const { user, logout } = useUser();
+  const { user, logout, viewRole } = useUser();
 
   const handleLogout = () => {
     logout();

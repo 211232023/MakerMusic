@@ -13,7 +13,7 @@ router.post('/forgot-password', userController.forgotPassword);
 
 router.put('/reset-password', userController.resetPassword);
 
-router.get('/my-students', authMiddleware, authorize(['PROFESSOR']), userController.getMyStudents);
+router.get('/my-students', authMiddleware, authorize(['PROFESSOR', 'ADMIN']), userController.getMyStudents);
 
 router.get('/my-teacher', authMiddleware, authorize(['ALUNO']), userController.getMyTeacher);
 

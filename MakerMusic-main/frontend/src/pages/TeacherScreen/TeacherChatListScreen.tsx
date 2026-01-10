@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useUser } from '../src/UserContext';
 import { getStudentsByTeacher } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 import { RootStackParamList } from '../src/types/navigation';
 
 type Student = { id: string; name: string; };
@@ -12,6 +13,7 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 export default function TeacherChatListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, token } = useUser();
+  const { showError } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -24,7 +26,7 @@ export default function TeacherChatListScreen() {
           setStudents(data);
         }
       } catch (error) {
-        Alert.alert("Erro", "Não foi possível carregar os seus alunos.");
+        showError("Não foi possível carregar os seus alunos.");
       } finally {
         setIsLoading(false);
       }
@@ -66,11 +68,43 @@ export default function TeacherChatListScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', paddingTop: 60, paddingHorizontal: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, textAlign: 'center' },
-    studentItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 10 },
-    studentName: { color: '#fff', fontSize: 18 },
-    emptyText: { color: '#aaa', textAlign: 'center', marginTop: 50, fontStyle: 'italic' },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
+    container: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f', 
+      paddingTop: 60, 
+      paddingHorizontal: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      textAlign: 'center' 
+    },
+    studentItem: { 
+      backgroundColor: '#333', 
+      padding: 20, 
+      borderRadius: 10, 
+      marginBottom: 10 
+    },
+    studentName: { 
+      color: '#fff', 
+      fontSize: 18 
+    },
+    emptyText: { 
+      color: '#aaa', 
+      textAlign: 'center', 
+      marginTop: 50, 
+      fontStyle: 'italic' 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 50, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold' 
+    },
 });

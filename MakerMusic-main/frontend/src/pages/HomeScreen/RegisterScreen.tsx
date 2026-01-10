@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
 import { useNavigation, NavigationProp } from "@react-navigation/native";
 import { RootStackParamList } from "../src/types/navigation";
 import { registerUser } from "../../services/api";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function RegisterScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { showError, showSuccess } = useToast();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,7 +15,7 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
+      showError("Por favor, preencha todos os campos.");
       return;
     }
 
@@ -30,14 +32,14 @@ export default function RegisterScreen() {
       const response = await registerUser(userData);
 
       if (response.userId) { 
-        Alert.alert("Sucesso", "Conta  de Aluno criada com sucesso! Você já pode fazer login.");
-        navigation.goBack();
+        showSuccess("Conta de Aluno criada com sucesso! Você já pode fazer login.");
+        setTimeout(() => navigation.goBack(), 1000);
       } else {
-        Alert.alert("Erro de Cadastro", response.message || "Ocorreu um erro ao criar a conta.");
+        showError(response.message || "Ocorreu um erro ao criar a conta.");
       }
     } catch (error) {
       console.error("Falha no registo:", error);
-      Alert.alert("Erro", "Não foi possível ligar ao servidor. Tente novamente.");
+      showError("Não foi possível ligar ao servidor. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -92,11 +94,48 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#1c1b1f", padding: 20 },
-  title: { color: "#f6e27f", fontSize: 32, fontWeight: "bold", marginBottom: 40 },
-  input: { width: "100%", backgroundColor: "#333", color: "#fff", padding: 15, borderRadius: 10, marginBottom: 15, fontSize: 16 },
-  button: { backgroundColor: "#d4af37", padding: 15, borderRadius: 10, width: "100%", alignItems: "center", marginTop: 20 },
-  buttonText: { color: "#1c1b1f", fontWeight: "bold", fontSize: 18 },
-  loginText: { color: "#fff", marginTop: 20, fontSize: 14 },
-  loginLink: { color: "#d4af37", fontWeight: "bold" },
+  container: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    backgroundColor: "#1c1b1f", 
+    padding: 20 
+  },
+  title: { 
+    color: "#f6e27f", 
+    fontSize: 32, 
+    fontWeight: "bold", 
+    marginBottom: 40 
+  },
+  input: { 
+    width: "100%", 
+    backgroundColor: "#333", 
+    color: "#fff", 
+    padding: 15, 
+    borderRadius: 10, 
+    marginBottom: 15, 
+    fontSize: 16 
+  },
+  button: { 
+    backgroundColor: "#d4af37", 
+    padding: 15, 
+    borderRadius: 10, 
+    width: "100%", 
+    alignItems: "center", 
+    marginTop: 20 
+  },
+  buttonText: { 
+    color: "#1c1b1f", 
+    fontWeight: "bold", 
+    fontSize: 18 
+  },
+  loginText: { 
+    color: "#fff", 
+    marginTop: 20, 
+    fontSize: 14 
+  },
+  loginLink: {
+    color: "#d4af37", 
+    fontWeight: "bold" 
+  },
 });

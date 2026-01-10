@@ -1,18 +1,84 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyStudents, createTask } from '../../services/api';
 import CustomPicker from '../../components/CustomPicker';
+import { useToast } from '../../contexts/ToastContext';
 
-type Student = {
+interface Student {
   id: string;
   name: string;
-};
+}
+
+interface Styles {
+  container: ViewStyle;
+  title: TextStyle;
+  label: TextStyle;
+  input: TextStyle;
+  button: ViewStyle;
+  buttonText: TextStyle;
+  backButton: ViewStyle;
+  backButtonText: TextStyle;
+}
+
+const styles = StyleSheet.create<Styles>({
+    container: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f', 
+      padding: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      marginTop: 40, 
+      textAlign: 'center' 
+    },
+    label: { 
+      fontSize: 18, 
+      color: '#fff', 
+      marginBottom: 10, 
+      alignSelf: 'flex-start' 
+    },
+    input: { 
+      width: '100%', 
+      backgroundColor: '#333', 
+      color: '#fff', padding: 15, 
+      borderRadius: 10, 
+      marginBottom: 20, 
+      fontSize: 16 
+    },
+    button: { 
+      backgroundColor: '#d4af37', 
+      padding: 15, 
+      borderRadius: 10, 
+      width: '100%', 
+      alignItems: 'center', 
+      marginVertical: 20 
+    },
+    buttonText: { 
+      color: '#1c1b1f', 
+      fontWeight: 'bold', 
+      fontSize: 18 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 50, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold' 
+    },
+});
 
 export default function TasksScreen() {
   const navigation = useNavigation();
   const { user, token } = useUser();
+  const { showError, showSuccess, showWarning } = useToast();
 
   const [title, setTitle] = useState('');
   const [students, setStudents] = useState<Student[]>([]);
@@ -22,19 +88,20 @@ export default function TasksScreen() {
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
 
   const loadStudents = useCallback(async () => {
-    if (user && token && user.role === 'PROFESSOR') {
+    if (user && token) {
       try {
         setIsLoadingStudents(true);
         const studentList = await getMyStudents(token);
         
-        if (Array.isArray(studentList) && studentList.length > 0) {
+        if (Array.isArray(studentList)) {
             setStudents(studentList);
         } else {
             setStudents([]);
-          }
+        }
       } catch (error) {
         console.error("Erro ao carregar alunos:", error);
-        Alert.alert("Erro", "Não foi possível carregar a sua lista de alunos.");
+        setStudents([]);
+        showError("Não foi possível carregar a lista de alunos.");
       } finally {
         setIsLoadingStudents(false);
       }
@@ -49,7 +116,7 @@ export default function TasksScreen() {
 
   const handleCreateTask = async () => {
     if (!title.trim() || !selectedStudentId) {
-      Alert.alert('Atenção', 'Por favor, escreva o título da tarefa e selecione um aluno.');
+      showWarning('Por favor, escreva o título da tarefa e selecione um aluno.');
       return;
     }
 
@@ -62,28 +129,27 @@ export default function TasksScreen() {
 
     try {
       if (!token) {
-          Alert.alert("Erro", "Sessão inválida. Por favor, faça login novamente.");
+          showError("Sessão inválida. Por favor, faça login novamente.");
           return;
       }
       
       const response = await createTask(taskData, token);
 
       if (response.message === 'Tarefa criada com sucesso!') {
-        Alert.alert('Sucesso', 'Tarefa atribuída com sucesso!');
+        showSuccess('Tarefa atribuída com sucesso!');
         setTitle('');
         setSelectedStudentId(null);
       } else {
-        Alert.alert('Erro', response.message || 'Não foi possível criar a tarefa.');
+        showError(response.message || 'Não foi possível criar a tarefa.');
       }
     } catch (error) {
         console.error("Erro ao criar tarefa:", error);
-        Alert.alert("Erro", "Ocorreu um erro de comunicação com o servidor.");
+        showError("Ocorreu um erro de comunicação com o servidor.");
     } finally {
         setIsLoading(false);
     }
   };
 
-  // Preparar itens para o CustomPicker
   const pickerItems = [
     { label: 'Selecione um aluno...', value: null, color: '#aaa' },
     ...students.map(student => ({
@@ -114,7 +180,6 @@ export default function TasksScreen() {
           selectedValue={selectedStudentId}
           onValueChange={setSelectedStudentId}
           items={pickerItems}
-          placeholder="Selecione um aluno..."
         />
       )}
 
@@ -132,14 +197,3 @@ export default function TasksScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
-    label: { fontSize: 18, color: '#fff', marginBottom: 10, alignSelf: 'flex-start' },
-    input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20, fontSize: 16 },
-    button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
-    buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
-});

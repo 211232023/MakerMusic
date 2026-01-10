@@ -1,8 +1,9 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getAllUsers, deleteUser } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../src/types/navigation';
 
@@ -15,7 +16,8 @@ type UserFromApi = {
 
 export default function EntitiesScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { token } = useUser(); 
+  const { token } = useUser();
+  const { showError, showSuccess } = useToast(); 
   
   const [users, setUsers] = useState<UserFromApi[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +31,7 @@ export default function EntitiesScreen() {
         setUsers(data);
       }
     } catch (error) {
-      Alert.alert("Erro", "Não foi possível carregar a lista de utilizadores.");
+      showError("Não foi possível carregar a lista de utilizadores.");
     } finally {
       setIsLoading(false);
     }
@@ -56,10 +58,10 @@ export default function EntitiesScreen() {
             if (!token) return;
             const response = await deleteUser(userId, token);
             if (response.message === 'Usuário apagado com sucesso.') {
-              Alert.alert("Sucesso", response.message);
+              showSuccess(response.message);
               fetchUsers(); 
             } else {
-              Alert.alert("Erro", response.message || "Não foi possível excluir o utilizador.");
+              showError(response.message || "Não foi possível excluir o utilizador.");
             }
           },
           style: "destructive"

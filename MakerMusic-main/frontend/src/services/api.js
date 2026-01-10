@@ -25,8 +25,9 @@ export const loginUser = async (credentials) => {
       },
       body: JSON.stringify(credentials),
     });
+
     return response.json();
-  } catch (error) {
+  } catch (error) { 
     console.error('Erro no login:', error);
     return { message: 'Não foi possível ligar ao servidor.' };
   }

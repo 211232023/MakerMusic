@@ -1,12 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import { 
   View, Text, StyleSheet, FlatList, ActivityIndicator, 
-  TouchableOpacity, Modal, Image, Alert 
+  TouchableOpacity, Modal, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyPayments } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const fakeQrCode = require('../../assets/fake-qr-code.png'); 
 
@@ -21,6 +22,7 @@ type Payment = {
 export default function PaymentsScreen() {
   const navigation = useNavigation();
   const { token } = useUser();
+  const { showError } = useToast();
   const [payments, setPayments] = useState<Payment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -37,7 +39,7 @@ export default function PaymentsScreen() {
       setPayments(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Erro ao buscar pagamentos:", error);
-      Alert.alert("Erro", "Não foi possível carregar seus dados financeiros.");
+      showError("Não foi possível carregar seus dados financeiros.");
     } finally {
       setIsLoading(false);
     }
@@ -120,28 +122,136 @@ export default function PaymentsScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: '#1c1b1f' },
-    container: { flex: 1, padding: 20 },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40, textAlign: 'center' },
-    paymentItem: { backgroundColor: '#333', padding: 20, borderRadius: 10, marginBottom: 15, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    description: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-    amount: { color: '#f6e27f', fontSize: 16, marginVertical: 4 },
-    date: { color: '#ccc', fontSize: 14 },
-    status: { fontSize: 16, fontWeight: 'bold', textTransform: 'capitalize' },
-    statusPaid: { color: '#2E8B57' },
-    statusPending: { color: '#FFA500' },
-    statusOverdue: { color: '#FF6347' },
-    payButton: { backgroundColor: '#d4af37', paddingVertical: 8, paddingHorizontal: 20, borderRadius: 5, marginTop: 8 },
-    payButtonText: { color: '#1c1b1f', fontWeight: 'bold' },
-    emptyText: { color: '#aaa', fontStyle: 'italic', textAlign: 'center', marginTop: 50, fontSize: 16 },
-    backButton: { position: 'absolute', bottom: 30, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
-    modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.7)' },
-    modalView: { width: '85%', backgroundColor: '#333', borderRadius: 20, padding: 25, alignItems: 'center' },
-    modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#f6e27f', marginBottom: 15 },
-    qrCode: { width: 200, height: 200, marginBottom: 20, borderRadius: 8, backgroundColor: 'white' },
-    pixKeyLabel: { color: '#ccc', fontSize: 14 },
-    pixKey: { color: '#fff', fontSize: 12, padding: 10, backgroundColor: '#222', borderRadius: 5, marginVertical: 10, textAlign: 'center' },
-    closeButton: { backgroundColor: '#8B0000', padding: 12, borderRadius: 10, marginTop: 20, minWidth: 100, alignItems: 'center' },
-    closeButtonText: { color: '#fff', fontWeight: 'bold' },
+    safeArea: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f' 
+    },
+    container: { 
+      flex: 1, 
+      padding: 20 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      marginTop: 40, 
+      textAlign: 'center' 
+    },
+    paymentItem: { 
+      backgroundColor: '#333', 
+      padding: 20, 
+      borderRadius: 10, 
+      marginBottom: 15, 
+      flexDirection: 'row', 
+      justifyContent: 'space-between', 
+      alignItems: 'center' 
+    },
+    description: { 
+      color: '#fff', 
+      fontSize: 18, 
+      fontWeight: 'bold' 
+    },
+    amount: { 
+      color: '#f6e27f', 
+      fontSize: 16, 
+      marginVertical: 4 
+    },
+    date: { 
+      color: '#ccc', 
+      fontSize: 14 
+    },
+    status: { 
+      fontSize: 16, 
+      fontWeight: 'bold', 
+      textTransform: 'capitalize' 
+    },
+    statusPaid: { 
+      color: '#2E8B57' 
+    },
+    statusPending: { 
+      color: '#FFA500' 
+    },
+    statusOverdue: 
+    { color: '#FF6347' 
+    },
+    payButton: { 
+      backgroundColor: '#d4af37', 
+      paddingVertical: 8, 
+      paddingHorizontal: 20, 
+      borderRadius: 5, 
+      marginTop: 8 
+    },
+    payButtonText: { 
+      color: '#1c1b1f', 
+      fontWeight: 'bold' 
+    },
+    emptyText: { 
+      color: '#aaa', 
+      fontStyle: 'italic', 
+      textAlign: 'center', 
+      marginTop: 50, 
+      fontSize: 16 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 30, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold'
+    },
+    modalContainer: { 
+      flex: 1, 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      backgroundColor: 'rgba(0,0,0,0.7)' 
+    },
+    modalView: { 
+      width: '85%', 
+      backgroundColor: '#333', 
+      borderRadius: 20, 
+      padding: 25, 
+      alignItems: 'center' 
+    },
+    modalTitle: { 
+      fontSize: 22, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 15 
+    },
+    qrCode: { 
+      width: 200, 
+      height: 200, 
+      marginBottom: 20, 
+      borderRadius: 8, 
+      backgroundColor: 'white' 
+    },
+    pixKeyLabel: { 
+      color: '#ccc', 
+      fontSize: 14 
+    },
+    pixKey: { 
+      color: '#fff', 
+      fontSize: 12, 
+      padding: 10, 
+      backgroundColor: '#222', 
+      borderRadius: 5, 
+      marginVertical: 10, 
+      textAlign: 'center' 
+    },
+    closeButton: { 
+      backgroundColor: '#8B0000', 
+      padding: 12, 
+      borderRadius: 10, 
+      marginTop: 20, 
+      minWidth: 100, 
+      alignItems: 'center' 
+    },
+    closeButtonText: { 
+      color: '#fff', 
+      fontWeight: 'bold' 
+    },
 });

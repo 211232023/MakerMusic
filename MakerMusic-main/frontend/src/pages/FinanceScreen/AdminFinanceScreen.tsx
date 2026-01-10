@@ -1,15 +1,17 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getAllUsers, createOrUpdatePayment, getAllStudentsFinance } from '../../services/api';
-import RNPickerSelect from 'react-native-picker-select'; // MUDANÇA: Importado RNPickerSelect
+import RNPickerSelect from 'react-native-picker-select';
+import { useToast } from '../../contexts/ToastContext';
 
 type User = { id: string; name: string; role: string; };
 
 export default function AdminFinanceScreen() {
   const navigation = useNavigation();
   const { token } = useUser();
+  const { showError, showSuccess } = useToast();
   const [students, setStudents] = useState<User[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [amount, setAmount] = useState('');
@@ -34,7 +36,7 @@ export default function AdminFinanceScreen() {
 
   const handleSavePayment = async () => {
     if (!selectedStudentId || !amount || !paymentDate) {
-      Alert.alert('Erro', 'Todos os campos são obrigatórios.');
+      showError('Todos os campos são obrigatórios.');
       return;
     }
     if (!token) return;
@@ -52,10 +54,10 @@ export default function AdminFinanceScreen() {
     setIsLoading(false);
 
     if (response.message) {
-      Alert.alert('Sucesso', 'Pagamento registado com sucesso!');
-      navigation.goBack();
+      showSuccess('Pagamento registado com sucesso!');
+      setTimeout(() => navigation.goBack(), 1000);
     } else {
-      Alert.alert('Erro', 'Não foi possível registar o pagamento.');
+      showError('Não foi possível registar o pagamento.');
     }
   };
   
@@ -114,14 +116,57 @@ export default function AdminFinanceScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#1c1b1f', padding: 20, alignItems: 'center' },
-    title: { fontSize: 28, fontWeight: 'bold', color: '#f6e27f', marginBottom: 30, marginTop: 40 },
-    label: { fontSize: 16, color: '#fff', marginBottom: 10, alignSelf: 'flex-start', marginLeft: 5 },
-    input: { width: '100%', backgroundColor: '#333', color: '#fff', padding: 15, borderRadius: 10, marginBottom: 20 },
-    button: { backgroundColor: '#d4af37', padding: 15, borderRadius: 10, width: '100%', alignItems: 'center', marginVertical: 20 },
-    buttonText: { color: '#1c1b1f', fontWeight: 'bold', fontSize: 18 },
-    backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-    backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
+    container: { 
+      flex: 1, 
+      backgroundColor: '#1c1b1f', 
+      padding: 20, 
+      alignItems: 'center' 
+    },
+    title: { 
+      fontSize: 28, 
+      fontWeight: 'bold', 
+      color: '#f6e27f', 
+      marginBottom: 30, 
+      marginTop: 40 
+    },
+    label: { 
+      fontSize: 16, 
+      color: '#fff', 
+      marginBottom: 10, 
+      alignSelf: 'flex-start', 
+      marginLeft: 5 
+    },
+    input: { 
+      width: '100%', 
+      backgroundColor: '#333', 
+      color: '#fff', 
+      padding: 15, 
+      borderRadius: 10, 
+      marginBottom: 20 
+    },
+    button: { 
+      backgroundColor: '#d4af37', 
+      padding: 15, 
+      borderRadius: 10, 
+      width: '100%', 
+      alignItems: 'center', 
+      marginVertical: 20 
+    },
+    buttonText: { 
+      color: '#1c1b1f', 
+      fontWeight: 'bold', 
+      fontSize: 18 
+    },
+    backButton: { 
+      position: 'absolute', 
+      bottom: 50, 
+      alignSelf: 'center' 
+    },
+    backButtonText: { 
+      color: '#d4af37', 
+      fontSize: 16, 
+      fontWeight: 'bold' 
+    },
 });
 
 // MUDANÇA: Adicionados estilos para o RNPickerSelect

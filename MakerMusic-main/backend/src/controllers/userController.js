@@ -1,12 +1,11 @@
 const { pool } = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const emailService = require('../services/emailService'); // Adicione esta linhas
+const emailService = require('../services/emailService');
 
 exports.registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
-  // SEGURANÇA: No cadastro público, apenas o papel 'ALUNO' é permitido.
   if (role !== 'ALUNO') {
     return res.status(403).json({ message: 'Apenas o cadastro de Alunos é permitido nesta rota.' });
   }
@@ -35,12 +34,13 @@ exports.registerUser = async (req, res) => {
   }
 };
 
-// NOVO: Função para cadastro de usuários por um Admin
 exports.registerUserByAdmin = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { 
+    name, email, password, role, 
+    student_level, instrument_category, 
+    teacher_category, teacher_level 
+  } = req.body;
 
-  // O middleware 'authorize' já garante que apenas ADMINs cheguem aqui.
-  // Apenas precisamos garantir que o papel seja válido.
   const validRoles = ['ALUNO', 'PROFESSOR', 'ADMIN', 'FINANCEIRO'];
   if (!validRoles.includes(role)) {
     return res.status(400).json({ message: 'Papel de usuário inválido.' });
@@ -55,8 +55,14 @@ exports.registerUserByAdmin = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const [result] = await pool.query(
-      'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-      [name, email, hashedPassword, role]
+      'INSERT INTO users (name, email, password, role, student_level, instrument_category, teacher_category, teacher_level) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        name, email, hashedPassword, role, 
+        student_level || null, 
+        instrument_category || null, 
+        teacher_category || null, 
+        teacher_level || null
+      ]
     );
 
     res.status(201).json({ message: `Utilizador ${role} registado com sucesso!`, userId: result.insertId });
@@ -139,8 +145,6 @@ exports.getMyTeacher = async (req, res) => {
   }
 };
 
-
-
 exports.updatePassword = async (req, res) => {
   const { email, newPassword } = req.body;
 
@@ -171,7 +175,6 @@ exports.updatePassword = async (req, res) => {
   }
 };
 
-// FUNÇÃO CORRIGIDA: exports.forgotPassword
 exports.forgotPassword = async (req, res) => {
   const { email } = req.body;
 
@@ -186,17 +189,14 @@ exports.forgotPassword = async (req, res) => {
       return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    // Gerar token simples (6 dígitos)
     const token = Math.floor(100000 + Math.random() * 900000).toString();
-    const expiresAt = new Date(Date.now() + 3600000); // 1 hora
+    const expiresAt = new Date(Date.now() + 3600000);
 
-    // Salvar token no banco de dados
     await pool.query(
       'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE email = ?',
       [token, expiresAt, email]
     );
 
-     // --- MUDANÇA: Usar o seu emailService.js ---
      const emailResponse = await emailService.sendPasswordResetEmail(email, token);
 
     if (emailResponse.success) {
@@ -204,7 +204,6 @@ exports.forgotPassword = async (req, res) => {
             message: 'Token de recuperação enviado para o seu e-mail!'
         });
     } else {
-        // Se o e-mail falhar, o token ainda está no banco de dados
         console.error('Erro ao enviar e-mail:', emailResponse.error);
         res.status(500).json({ 
             message: 'Erro ao enviar e-mail. Tente novamente mais tarde.' 
@@ -217,7 +216,6 @@ exports.forgotPassword = async (req, res) => {
   }
 };
 
-// FUNÇÃO CORRIGIDA: exports.resetPassword
 exports.resetPassword = async (req, res) => {
   const { token, newPassword } = req.body;
 
@@ -251,14 +249,24 @@ exports.resetPassword = async (req, res) => {
   }
 };
 
-
 exports.getMyStudents = async (req, res) => {
     try {
-        const teacherId = req.user.id;
-        const [students] = await pool.query('SELECT id, name, email FROM users WHERE teacher_id = ? AND role = "ALUNO"', [teacherId]);
+        const userId = req.user.id;
+        const userRole = req.user.role;
+        
+        let query = 'SELECT id, name, email, student_level, instrument_category FROM users WHERE role = "ALUNO"';
+        let params = [];
+
+        // Se for professor, filtra apenas os alunos dele. Se for admin, vê todos para simulação.
+        if (userRole === 'PROFESSOR') {
+            query += ' AND teacher_id = ?';
+            params.push(userId);
+        }
+
+        const [students] = await pool.query(query, params);
         res.json(students);
     } catch (error) {
-        console.error('Erro ao buscar meus alunos:', error);
+        console.error('Erro ao buscar alunos:', error);
         res.status(500).json({ message: 'Erro no servidor.' });
     }
 };

@@ -1,6 +1,7 @@
 import React, { createContext, useState, ReactNode, useContext, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// O tipo User foi mantido como no seu segundo código
 export type User = {
   id: number;
   email: string;
@@ -12,16 +13,20 @@ type AuthContextType = {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  login: (userData: User, token: string) => Promise<void>; // Tornamos a função assíncrona
-  logout: () => Promise<void>; // Tornamos a função assíncrona
+  viewRole: "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null;
+  login: (userData: User, token: string) => Promise<void>;
+  logout: () => Promise<void>;
+  setViewRole: (role: "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null) => void;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   token: null,
   isLoading: true,
+  viewRole: null,
   login: async () => {},
   logout: async () => {},
+  setViewRole: () => {},
 });
 
 type AuthProviderProps = { children: ReactNode };
@@ -30,6 +35,8 @@ export const UserProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // O nome do state foi alterado para evitar conflito com a função setViewRole
+  const [viewRole, setViewRoleState] = useState<"ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null>(null);
 
   const STORAGE_KEY_USER = "@loggedUser";
   const STORAGE_KEY_TOKEN = "@authToken";
@@ -54,33 +61,44 @@ export const UserProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (userData: User, authToken: string) => {
     try {
-      // Primeiro, guarda os dados no AsyncStorage
       await AsyncStorage.setItem(STORAGE_KEY_USER, JSON.stringify(userData));
       await AsyncStorage.setItem(STORAGE_KEY_TOKEN, authToken);
-      // Só depois atualiza o estado da aplicação
+      
       setUser(userData);
       setToken(authToken);
-      console.log("Dados de login guardados com sucesso no AsyncStorage!");
+      setViewRoleState(null); // Reseta a visão simulada em um novo login
     } catch (error) {
       console.error("Falha ao guardar dados de login:", error);
     }
   };
   
+  // LÓGICA NOVA APLICADA AQUI
   const logout = async () => {
-    try {
-      // Primeiro, remove os dados do AsyncStorage
-      await AsyncStorage.removeItem(STORAGE_KEY_USER);
-      await AsyncStorage.removeItem(STORAGE_KEY_TOKEN);
-      // Só depois atualiza o estado
-      setUser(null);
-      setToken(null);
-    } catch (error) {
-      console.error("Falha ao remover dados de logout:", error);
+    // Se for um ADMIN simulando outra visão, o "Sair" apenas volta ao painel ADMIN
+    if (user?.role === 'ADMIN' && viewRole) {
+      setViewRoleState(null); // Apenas limpa a simulação, não faz logout real
+    } else {
+      // Caso contrário, faz o logout real, limpando o AsyncStorage e o estado
+      try {
+        await AsyncStorage.removeItem(STORAGE_KEY_USER);
+        await AsyncStorage.removeItem(STORAGE_KEY_TOKEN);
+        
+        setUser(null);
+        setToken(null);
+        setViewRoleState(null);
+      } catch (error) {
+        console.error("Falha ao remover dados de logout:", error);
+      }
     }
   };
 
+  // Esta função agora apenas atualiza o estado da simulação
+  const setViewRole = (role: "ALUNO" | "PROFESSOR" | "ADMIN" | "FINANCEIRO" | null) => {
+    setViewRoleState(role);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, viewRole, login, logout, setViewRole }}>
       {children}
     </AuthContext.Provider>
   );

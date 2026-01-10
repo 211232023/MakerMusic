@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
-import { resetPassword } from "../../services/api"; // Importe a função
-import { useNavigation, useRoute, RouteProp } from "@react-navigation/native"; // Adicione RouteProp
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { resetPassword } from "../../services/api";
+import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
+import { useToast } from "../../contexts/ToastContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../src/types/navigation";
 
@@ -11,6 +12,7 @@ type ResetPasswordRouteProp = RouteProp<RootStackParamList, 'ResetPassword'>;
 export default function ResetPasswordScreen() {
   const navigation = useNavigation<ResetPasswordScreenNavigationProp>();
   const route = useRoute<ResetPasswordRouteProp>();
+  const { showError, showSuccess } = useToast();
   
   // Captura o e-mail passado da tela anterior
   const { email } = route.params; 
@@ -22,12 +24,12 @@ export default function ResetPasswordScreen() {
 
   const handleResetPassword = async () => {
     if (!token.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-      Alert.alert("Erro", "Por favor, preencha todos os campos.");
+      showError("Por favor, preencha todos os campos.");
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      Alert.alert("Erro", "As senhas não coincidem.");
+      showError("As senhas não coincidem.");
       return;
     }
 
@@ -37,16 +39,17 @@ export default function ResetPasswordScreen() {
       const response = await resetPassword({ token, newPassword });
       
       if (response.message) {
-        Alert.alert("Sucesso", response.message);
-        // Redireciona para a tela de Login após o sucesso
-        navigation.replace('Login'); 
+        showSuccess(response.message);
+        setTimeout(() => {
+          navigation.replace('Login');
+        }, 1500);
       } else {
-        Alert.alert("Erro", "Não foi possível redefinir a senha.");
+        showError("Não foi possível redefinir a senha.");
       }
       
     } catch (error) {
       console.error("Erro ao redefinir senha:", error);
-      Alert.alert("Erro", "Não foi possível conectar ao servidor.");
+      showError("Não foi possível conectar ao servidor.");
     }
 
     setIsLoading(false);

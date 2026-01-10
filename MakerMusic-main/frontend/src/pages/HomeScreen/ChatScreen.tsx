@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity,
-  ActivityIndicator, KeyboardAvoidingView, Platform, Alert, SafeAreaView, StatusBar
+  ActivityIndicator, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar
 } from 'react-native';
 import { useRoute, RouteProp, useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getChatHistory, sendMessage } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 import { RootStackParamList } from '../src/types/navigation';
 
 type ChatScreenRouteProp = RouteProp<RootStackParamList, 'Chat'>;
@@ -21,6 +22,7 @@ export default function ChatScreen() {
   const navigation = useNavigation();
   const route = useRoute<ChatScreenRouteProp>();
   const { user, token } = useUser();
+  const { showError } = useToast();
   const otherUserId = Number(route.params.otherUserId);
   const { otherUserName } = route.params;
 
@@ -38,7 +40,7 @@ export default function ChatScreen() {
           setMessages(history);
         }
       } catch (error) {
-        Alert.alert('Erro', 'Não foi possível carregar as mensagens.');
+        showError('Não foi possível carregar as mensagens.');
       } finally {
         setIsLoading(false);
       }
@@ -65,7 +67,7 @@ export default function ChatScreen() {
 
     const response = await sendMessage(otherUserId, messageText, token);
     if (!response.messageId) {
-      Alert.alert('Erro', 'Não foi possível enviar a mensagem.');
+      showError('Não foi possível enviar a mensagem.');
       setMessages(prev => prev.filter(msg => msg.id !== tempId));
       setNewMessage(messageText);
     }

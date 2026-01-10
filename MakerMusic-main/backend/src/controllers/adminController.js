@@ -2,7 +2,7 @@ const { pool } = require('../config/db');
 
 exports.getAllUsers = async (req, res) => {
     try {
-        const [users] = await pool.query('SELECT id, name, email, role, teacher_id FROM users WHERE id != ?', [req.user.id]);
+        const [users] = await pool.query('SELECT id, name, email, role, teacher_id, student_level, instrument_category, teacher_category, teacher_level FROM users WHERE id != ?', [req.user.id]);
         res.json(users);
     } catch (error) {
         console.error('Erro ao buscar todos os usuários:', error);
