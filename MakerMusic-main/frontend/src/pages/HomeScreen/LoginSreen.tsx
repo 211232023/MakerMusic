@@ -1,15 +1,12 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useUser } from "../src/UserContext";
 import { useToast } from "../../contexts/ToastContext";
-// Importe a partir do seu ficheiro de tipos de navegação
 import { RootStackParamList } from "../src/types/navigation"; 
 import { loginUser } from "../../services/api";
 
-
-// A correção principal está aqui: "export default function..."
 export default function LoginScreen() {
   const { login } = useUser();
   const { showError, showSuccess } = useToast();
@@ -43,106 +40,129 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>MakerMusic</Text>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.formContainer}>
+          <Text style={styles.title}>MakerMusic</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#aaa"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Email"
+            placeholderTextColor="#aaa"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        placeholderTextColor="#aaa"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
+          <TextInput
+            style={styles.input}
+            placeholder="Senha"
+            placeholderTextColor="#aaa"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
 
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
-      ) : (
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
-        </TouchableOpacity>
-      )}
+          {isLoading ? (
+            <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+          ) : (
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Entrar</Text>
+            </TouchableOpacity>
+          )}
 
-      <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")}>
-        <Text style={styles.registerText}>
-          Esqueceu a senha? <Text style={styles.registerLink}>Recupere aqui</Text>
-        </Text>
-      </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate("ForgotPassword")} style={styles.linkButton}>
+            <Text style={styles.registerText}>
+              Esqueceu a senha? <Text style={styles.registerLink}>Recupere aqui</Text>
+            </Text>
+          </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-        <Text style={styles.registerText}>
-          Não tem uma conta? <Text style={styles.registerLink}>Cadastre-se como Aluno</Text>
-        </Text>
-      </TouchableOpacity>
-    </View>
+          <TouchableOpacity onPress={() => navigation.navigate("Register")} style={styles.linkButton}>
+            <Text style={styles.registerText}>
+              Não tem uma conta? <Text style={styles.registerLink}>Cadastre-se como Aluno</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "#1c1b1f", 
-    padding: 20 
+  container: {
+    flex: 1,
+    backgroundColor: "#1c1b1f",
+    width: '100%',
   },
-  title: { 
-    color: "#f6e27f", 
-    fontSize: 32, 
-    fontWeight: "bold", 
-    marginBottom: 30, 
-    marginTop: 40 
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
-  input: { 
-    width: "100%", 
-    backgroundColor: "#333", 
-    color: "#fff", 
-    padding: 15, 
-    borderRadius: 10, 
-    marginBottom: 15, 
-    fontSize: 16 
+  formContainer: {
+    width: "100%",
+    maxWidth: 600,
+    alignItems: "center",
+    paddingVertical: 40,
+    alignSelf: 'center',
   },
-  button: { 
-    backgroundColor: "#d4af37", 
-    padding: 15, 
-    borderRadius: 10, 
-    width: "100%", 
-    alignItems: "center", 
-    marginTop: 20 
+  title: {
+    color: "#f6e27f",
+    fontSize: 42,
+    fontWeight: "bold",
+    marginBottom: 40,
+    textAlign: "center",
   },
-  buttonText: { 
-    color: "#1c1b1f", 
-    fontWeight: "bold", 
-    fontSize: 18 
+  input: {
+    width: '100%',
+    maxWidth: 600,
+    backgroundColor: "#333",
+    color: "#fff",
+    padding: 18,
+    borderRadius: 12,
+    marginBottom: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#444",
+    alignSelf: 'center',
   },
-  // INÍCIO DOS ESTILOS ADICIONADOS
-  forgotPasswordContainer: { 
-    width: "100%", 
-    alignItems: "flex-end", 
-    marginTop: 10 
+  button: {
+    backgroundColor: "#d4af37",
+    padding: 18,
+    borderRadius: 12,
+    width: '100%',
+    maxWidth: 600,
+    alignItems: "center",
+    marginTop: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    alignSelf: 'center',
   },
-  forgotPasswordText: { 
-    color: "#d4af37", 
-    fontSize: 14, 
-    fontWeight: "bold" 
+  buttonText: {
+    color: "#1c1b1f",
+    fontWeight: "bold",
+    fontSize: 18,
   },
-  registerText: { 
-    color: "#fff", 
-    marginTop: 20, 
-    fontSize: 14 
+  linkButton: {
+    marginTop: 20,
+    width: "100%",
+    alignItems: "center",
   },
-  registerLink: { 
-    color: "#d4af37", 
-    fontWeight: "bold" 
+  registerText: {
+    color: "#fff",
+    fontSize: 14,
+    textAlign: "center",
+  },
+  registerLink: {
+    color: "#d4af37",
+    fontWeight: "bold",
   },
 });

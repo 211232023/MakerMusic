@@ -24,6 +24,8 @@ import StudentTasksScreen from './src/pages/StudentScreen/StudentTasksScreen';
 import TeacherTasksScreen from './src/pages/TeacherScreen/TasksScreen';
 import ChatScreen from './src/pages/HomeScreen/ChatScreen';
 import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScreen';
+import TeacherPerformanceListScreen from './src/pages/TeacherScreen/TeacherPerformanceListScreen.tsx';
+import StudentPerformanceScreen from './src/pages/TeacherScreen/StudentPerformanceScreen';
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
 import AddScheduleScreen from "./src/pages/TeacherScreen/AddScheduleScreen";
@@ -52,12 +54,14 @@ function AppNavigator() {
           <Stack.Screen name="StudentTasks" component={StudentTasksScreen} />
           <Stack.Screen name="TasksScreen" component={TeacherTasksScreen} />
           <Stack.Screen name="TeacherChatList" component={TeacherChatListScreen} />
+          <Stack.Screen name="TeacherPerformanceList" component={TeacherPerformanceListScreen} />
           <Stack.Screen name="ManageUsers" component={ManageUsersScreen} />
           <Stack.Screen name="Entities" component={EntitiesScreen} />
           <Stack.Screen name="HorariosScreen" component={HorariosScreen} />
           <Stack.Screen name="PymentsScreen" component={PymentsScreen} />
           <Stack.Screen name="PresençaScreen" component={PresencaScreen} />
           <Stack.Screen name="Chat" component={ChatScreen} />
+          <Stack.Screen name="StudentPerformance" component={StudentPerformanceScreen} />
           <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
           <Stack.Screen name="AdminFinance" component={AdminFinanceScreen} options={{ headerShown: false }} />
           <Stack.Screen name="AdminRegisterUser" component={AdminRegisterUserScreen} />

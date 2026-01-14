@@ -1,8 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { 
-  View, Text, StyleSheet, FlatList, ActivityIndicator, 
-  TouchableOpacity, Modal, Image
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, ActivityIndicator, TouchableOpacity, Modal, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
@@ -28,11 +25,7 @@ export default function PaymentsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
 
   const fetchPayments = useCallback(async () => {
-    if (!token) {
-        setIsLoading(false);
-        return;
-    };
-
+    if (!token) return;
     try {
       setIsLoading(true);
       const data = await getMyPayments(token);
@@ -40,19 +33,15 @@ export default function PaymentsScreen() {
     } catch (error) {
       console.error("Erro ao buscar pagamentos:", error);
       showError("Não foi possível carregar seus dados financeiros.");
-    } finally {
-      setIsLoading(false);
+    } finally { 
+      setIsLoading(false); 
     }
   }, [token]);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchPayments();
-    }, [fetchPayments])
-  );
+  useFocusEffect(useCallback(() => { fetchPayments(); }, [fetchPayments]));
 
   const handlePay = () => setModalVisible(true);
-  
+
   const getStatusStyle = (status: Payment['status']) => {
     if (status === 'PAGO') return styles.statusPaid;
     if (status === 'ATRASADO') return styles.statusOverdue;
@@ -63,35 +52,33 @@ export default function PaymentsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.title}>Meu Financeiro</Text>
-        {isLoading ? (
-          <ActivityIndicator size="large" color="#d4af37" />
-        ) : (
-          <FlatList
-            data={payments}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={styles.paymentItem}>
-                <View>
-                  <Text style={styles.description}>{item.description || 'Sem descrição'}</Text>
-                  <Text style={styles.amount}>
-                    R$ {parseFloat(String(item.amount) || '0').toFixed(2)}
-                  </Text>
-                  <Text style={styles.date}>Vencimento: {new Date(item.payment_date).toLocaleDateString()}</Text>
+        <View style={styles.contentContainer}>
+          {isLoading ? <ActivityIndicator size="large" color="#d4af37" /> : (
+            <FlatList
+              data={payments}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.paymentItem}>
+                  <View>
+                    <Text style={styles.description}>{item.description || 'Mensalidade'}</Text>
+                    <Text style={styles.amount}>R$ {parseFloat(String(item.amount)).toFixed(2)}</Text>
+                    <Text style={styles.date}>Vencimento: {new Date(item.payment_date).toLocaleDateString()}</Text>
+                  </View>
+                  <View style={{alignItems: 'center'}}>
+                    <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
+                    {item.status !== 'PAGO' && (
+                      <TouchableOpacity style={styles.payButton} onPress={handlePay}>
+                        <Text style={styles.payButtonText}>Pagar</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 </View>
-                <View style={{alignItems: 'center'}}>
-                  <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
-                  {item.status !== 'PAGO' && (
-                    <TouchableOpacity style={styles.payButton} onPress={handlePay}>
-                      <Text style={styles.payButtonText}>Pagar</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            )}
-            ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma cobrança foi vinculada a você.</Text>}
-          />
-        )}
-        
+              )}
+              ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma cobrança encontrada.</Text>}
+            />
+          )}
+        </View>
+
         <Modal
           animationType="slide"
           transparent={true}
@@ -104,9 +91,7 @@ export default function PaymentsScreen() {
               <Image source={fakeQrCode} style={styles.qrCode} />
               <Text style={styles.pixKeyLabel}>Chave Pix (Copia e Cola):</Text>
               <Text selectable style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
-              <TouchableOpacity style={styles.closeButton} onPress={() => {
-                  setModalVisible(false);
-              }}>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
                   <Text style={styles.closeButtonText}>Fechar</Text>
               </TouchableOpacity>
             </View>
@@ -122,136 +107,141 @@ export default function PaymentsScreen() {
 }
 
 const styles = StyleSheet.create({
-    safeArea: { 
-      flex: 1, 
-      backgroundColor: '#1c1b1f' 
-    },
-    container: { 
-      flex: 1, 
-      padding: 20 
-    },
-    title: { 
-      fontSize: 28, 
-      fontWeight: 'bold', 
-      color: '#f6e27f', 
-      marginBottom: 30, 
-      marginTop: 40, 
-      textAlign: 'center' 
-    },
-    paymentItem: { 
-      backgroundColor: '#333', 
-      padding: 20, 
-      borderRadius: 10, 
-      marginBottom: 15, 
-      flexDirection: 'row', 
-      justifyContent: 'space-between', 
-      alignItems: 'center' 
-    },
-    description: { 
-      color: '#fff', 
-      fontSize: 18, 
-      fontWeight: 'bold' 
-    },
-    amount: { 
-      color: '#f6e27f', 
-      fontSize: 16, 
-      marginVertical: 4 
-    },
-    date: { 
-      color: '#ccc', 
-      fontSize: 14 
-    },
-    status: { 
-      fontSize: 16, 
-      fontWeight: 'bold', 
-      textTransform: 'capitalize' 
-    },
-    statusPaid: { 
-      color: '#2E8B57' 
-    },
-    statusPending: { 
-      color: '#FFA500' 
-    },
-    statusOverdue: 
-    { color: '#FF6347' 
-    },
-    payButton: { 
-      backgroundColor: '#d4af37', 
-      paddingVertical: 8, 
-      paddingHorizontal: 20, 
-      borderRadius: 5, 
-      marginTop: 8 
-    },
-    payButtonText: { 
-      color: '#1c1b1f', 
-      fontWeight: 'bold' 
-    },
-    emptyText: { 
-      color: '#aaa', 
-      fontStyle: 'italic', 
-      textAlign: 'center', 
-      marginTop: 50, 
-      fontSize: 16 
-    },
-    backButton: { 
-      position: 'absolute', 
-      bottom: 30, 
-      alignSelf: 'center' 
-    },
-    backButtonText: { 
-      color: '#d4af37', 
-      fontSize: 16, 
-      fontWeight: 'bold'
-    },
-    modalContainer: { 
-      flex: 1, 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      backgroundColor: 'rgba(0,0,0,0.7)' 
-    },
-    modalView: { 
-      width: '85%', 
-      backgroundColor: '#333', 
-      borderRadius: 20, 
-      padding: 25, 
-      alignItems: 'center' 
-    },
-    modalTitle: { 
-      fontSize: 22, 
-      fontWeight: 'bold', 
-      color: '#f6e27f', 
-      marginBottom: 15 
-    },
-    qrCode: { 
-      width: 200, 
-      height: 200, 
-      marginBottom: 20, 
-      borderRadius: 8, 
-      backgroundColor: 'white' 
-    },
-    pixKeyLabel: { 
-      color: '#ccc', 
-      fontSize: 14 
-    },
-    pixKey: { 
-      color: '#fff', 
-      fontSize: 12, 
-      padding: 10, 
-      backgroundColor: '#222', 
-      borderRadius: 5, 
-      marginVertical: 10, 
-      textAlign: 'center' 
-    },
-    closeButton: { 
-      backgroundColor: '#8B0000', 
-      padding: 12, 
-      borderRadius: 10, 
-      marginTop: 20, 
-      minWidth: 100, 
-      alignItems: 'center' 
-    },
-    closeButtonText: { 
-      color: '#fff', 
-      fontWeight: 'bold' 
-    },
+  safeArea: { 
+    flex: 1, 
+    backgroundColor: '#1c1b1f' 
+  },
+  container: { 
+    flex: 1, 
+    padding: 20, 
+    alignItems: 'center' 
+  },
+  contentContainer: { 
+    width: '100%', 
+    maxWidth: 600, 
+    alignSelf: 'center', 
+    flex: 1 
+  },
+  title: { 
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    color: '#f6e27f', 
+    marginBottom: 30, 
+    marginTop: 40, 
+    textAlign: 'center' 
+  },
+  paymentItem: { 
+    backgroundColor: '#333', 
+    padding: 20, 
+    borderRadius: 10, 
+    marginBottom: 15, 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center' 
+  },
+  description: { 
+    color: '#fff', 
+    fontSize: 18, 
+    fontWeight: 'bold' 
+  },
+  amount: { 
+    color: '#f6e27f', 
+    fontSize: 16, 
+    marginVertical: 4 
+  },
+  date: { 
+    color: '#ccc', 
+    fontSize: 14 
+  },
+  status: { 
+    fontSize: 16, 
+    fontWeight: 'bold',
+    textTransform: 'capitalize'
+  },
+  statusPaid: { 
+    color: '#2E8B57' 
+  },
+  statusPending: { 
+    color: '#FFA500' 
+  },
+  statusOverdue: { 
+    color: '#FF6347' 
+  },
+  payButton: { 
+    backgroundColor: '#d4af37', 
+    paddingVertical: 8, 
+    paddingHorizontal: 20, 
+    borderRadius: 5, 
+    marginTop: 8 
+  },
+  payButtonText: { 
+    color: '#1c1b1f', 
+    fontWeight: 'bold' 
+  },
+  emptyText: { 
+    color: '#aaa', 
+    textAlign: 'center', 
+    marginTop: 50 
+  },
+  backButton: { 
+    position: 'absolute', 
+    bottom: 30, 
+    alignSelf: 'center' 
+  },
+  backButtonText: { 
+    color: '#d4af37', 
+    fontSize: 16, 
+    fontWeight: 'bold' 
+  },
+  modalContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.7)' 
+  },
+  modalView: { 
+    width: '85%', 
+    backgroundColor: '#333', 
+    borderRadius: 20, 
+    padding: 25, 
+    alignItems: 'center' 
+  },
+  modalTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: '#f6e27f', 
+    marginBottom: 15 
+  },
+  qrCode: { 
+    width: 200, 
+    height: 200, 
+    marginBottom: 20, 
+    borderRadius: 8, 
+    backgroundColor: 'white' 
+  },
+  pixKeyLabel: { 
+    color: '#ccc', 
+    fontSize: 14 
+  },
+  pixKey: { 
+    color: '#fff', 
+    fontSize: 12, 
+    padding: 10, 
+    backgroundColor: '#222', 
+    borderRadius: 5, 
+    marginVertical: 10, 
+    textAlign: 'center' 
+  },
+  closeButton: { 
+    backgroundColor: '#8B0000', 
+    padding: 12, 
+    borderRadius: 10, 
+    marginTop: 20, 
+    minWidth: 100, 
+    alignItems: 'center' 
+  },
+  closeButtonText: { 
+    color: '#fff', 
+    fontWeight: 'bold' 
+  },
 });

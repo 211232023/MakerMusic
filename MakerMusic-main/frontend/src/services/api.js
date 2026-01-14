@@ -189,6 +189,18 @@ export const updateTaskStatus = async (taskId, completed, token) => {
   }
 };
 
+export const getStudentPerformance = async (studentId, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/tasks/performance/${studentId}`, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar desempenho do aluno:', error);
+    return { total: 0, completed: 0, tasks: [] };
+  }
+};
+
 export const getChatHistory = async (otherUserId, token) => {
   try {
     const response = await fetch(`${BASE_URL}/chat/${otherUserId}`, {

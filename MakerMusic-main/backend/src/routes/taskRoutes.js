@@ -9,6 +9,7 @@ router.post('/', authMiddleware, authorize(['PROFESSOR']), taskController.create
 router.get('/student/:studentId', authMiddleware, authorize(['ALUNO', 'PROFESSOR']), taskController.getTasksByStudent);
 
 router.put('/:taskId/status', authMiddleware, authorize(['ALUNO']), taskController.updateTaskStatus);
+router.get('/performance/:studentId', authMiddleware, authorize(['PROFESSOR']), taskController.getStudentPerformance);
 
 
 module.exports = router;

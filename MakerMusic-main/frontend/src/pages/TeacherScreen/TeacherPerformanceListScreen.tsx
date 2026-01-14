@@ -10,7 +10,7 @@ import { RootStackParamList } from '../src/types/navigation';
 type Student = { id: string; name: string; };
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export default function TeacherChatListScreen() {
+export default function TeacherPerformanceListScreen() {
   const navigation = useNavigation<NavigationProp>();
   const { user, token } = useUser();
   const { showError } = useToast();
@@ -35,8 +35,8 @@ export default function TeacherChatListScreen() {
 
   useFocusEffect(useCallback(() => { fetchStudents(); }, [fetchStudents]));
 
-  const onChatPress = (student: Student) => {
-    navigation.navigate('Chat', { otherUserId: student.id, otherUserName: student.name });
+  const onPerformancePress = (student: Student) => {
+    navigation.navigate('StudentPerformance', { studentId: student.id, studentName: student.name });
   };
   
   if (isLoading) {
@@ -50,7 +50,7 @@ export default function TeacherChatListScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <Text style={styles.title}>Iniciar Conversa</Text>
+      <Text style={styles.title}>Desempenho dos Alunos</Text>
       <FlatList
         data={students}
         keyExtractor={(item) => item.id.toString()}
@@ -64,8 +64,8 @@ export default function TeacherChatListScreen() {
               <Text style={styles.studentName}>{item.name}</Text>
             </View>
             <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.actionButton} onPress={() => onChatPress(item)}>
-                <Text style={styles.actionButtonText}>Chat</Text>
+              <TouchableOpacity style={styles.actionButton} onPress={() => onPerformancePress(item)}>
+                <Text style={styles.actionButtonText}>Ver Desempenho</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -139,16 +139,16 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
     },
     actionButton: {
-      backgroundColor: '#d4af37',
+      backgroundColor: '#4CAF50',
       paddingVertical: 8,
-      paddingHorizontal: 16,
+      paddingHorizontal: 12,
       borderRadius: 8,
       marginLeft: 8,
     },
     actionButtonText: {
       color: '#1c1b1f',
       fontWeight: 'bold',
-      fontSize: 14,
+      fontSize: 13,
     },
     emptyText: { 
       color: '#aaa', 

@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, Dimensions, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -11,6 +11,8 @@ interface ToastProps {
   onHide: () => void;
   duration?: number;
 }
+
+const { width } = Dimensions.get('window');
 
 const Toast: React.FC<ToastProps> = ({ 
   message, 
@@ -24,7 +26,6 @@ const Toast: React.FC<ToastProps> = ({
 
   useEffect(() => {
     if (visible) {
-      // Animação de entrada
       Animated.parallel([
         Animated.timing(opacity, {
           toValue: 1,
@@ -38,7 +39,6 @@ const Toast: React.FC<ToastProps> = ({
         }),
       ]).start();
 
-      // Auto-hide após duração
       const timer = setTimeout(() => {
         hideToast();
       }, duration);
@@ -94,8 +94,10 @@ const Toast: React.FC<ToastProps> = ({
         },
       ]}
     >
-      <Ionicons name={toastStyle.icon} size={24} color="#fff" style={styles.icon} />
-      <Text style={styles.message}>{message}</Text>
+      <View style={styles.content}>
+        <Ionicons name={toastStyle.icon} size={24} color="#fff" style={styles.icon} />
+        <Text style={styles.message} numberOfLines={3}>{message}</Text>
+      </View>
     </Animated.View>
   );
 };
@@ -103,12 +105,11 @@ const Toast: React.FC<ToastProps> = ({
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 50,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: '5%',
+    right: '5%',
+    width: '90%',
+    alignSelf: 'center',
     borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: {
@@ -119,7 +120,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 8,
     zIndex: 9999,
-    maxWidth: Dimensions.get('window').width - 40,
+    // Garantir que o toast tenha uma altura mínima e não seja esmagado
+    minHeight: 60,
+    justifyContent: 'center',
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    width: '100%',
   },
   icon: {
     marginRight: 12,

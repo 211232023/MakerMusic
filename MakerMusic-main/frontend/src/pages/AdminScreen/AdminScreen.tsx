@@ -24,6 +24,7 @@ const styles = StyleSheet.create<Styles>({
   scrollContainer: {
     flexGrow: 1,
     backgroundColor: '#1c1b1f',
+    alignItems: 'center',
   },
   container: {
     flex: 1,
@@ -31,6 +32,9 @@ const styles = StyleSheet.create<Styles>({
     alignItems: 'center',
     padding: 20,
     paddingTop: 60,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
   },
   title: {
     fontSize: 28,
@@ -45,10 +49,12 @@ const styles = StyleSheet.create<Styles>({
   },
   section: {
     width: '100%',
+    maxWidth: 600,
     marginBottom: 25,
     padding: 15,
     backgroundColor: '#2a2a2a',
     borderRadius: 15,
+    alignSelf: 'center',
   },
   sectionTitle: {
     color: '#f6e27f',
@@ -62,10 +68,12 @@ const styles = StyleSheet.create<Styles>({
     padding: 15,
     borderRadius: 10,
     width: '100%',
+    maxWidth: 600,
     alignItems: 'center',
     marginBottom: 12,
     borderWidth: 1,
     borderColor: '#444',
+    alignSelf: 'center',
   },
   buttonText: {
     color: '#fff',
@@ -81,14 +89,14 @@ const styles = StyleSheet.create<Styles>({
     paddingVertical: 10,
     paddingHorizontal: 5,
     borderRadius: 8,
-    width: '31%', // Ajustado para caber 3 na mesma linha
+    width: '31%',
     alignItems: 'center',
     justifyContent: 'center',
   },
   viewButtonText: {
     color: '#fff',
     fontWeight: 'bold',
-    fontSize: 16, // Fonte reduzida para não quebrar o texto
+    fontSize: 16,
     textAlign: 'center',
   },
   logoutButton: {
@@ -98,10 +106,8 @@ const styles = StyleSheet.create<Styles>({
   },
 });
 
-type AdminScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 export default function AdminScreen() {
-  const navigation = useNavigation<AdminScreenNavigationProp>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { user, logout, setViewRole } = useUser();
 
   return (

@@ -25,7 +25,9 @@ export type RootStackParamList = {
 
   AdminRegisterUser: undefined;
 
-  // Telas de Chat
+  // Telas de Chat e Desempenho
   Chat: { otherUserId: string; otherUserName: string; };
+  StudentPerformance: { studentId: string; studentName: string };
   TeacherChatList: undefined;
+  TeacherPerformanceList: undefined;
 };

@@ -48,10 +48,7 @@ export default function EntitiesScreen() {
       "Confirmar Exclusão",
       "Você tem certeza de que deseja excluir este utilizador? Esta ação não pode ser desfeita.",
       [
-        {
-          text: "Cancelar",
-          style: "cancel"
-        },
+        { text: "Cancelar", style: "cancel" },
         { 
           text: "Excluir", 
           onPress: async () => {
@@ -113,6 +110,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#1c1b1f',
     padding: 20,
+    width: '100%',
   },
   centered: {
     justifyContent: 'center',
@@ -138,41 +136,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
   },
-  userName: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  userEmail: {
-    color: '#ccc',
-    fontSize: 14,
-  },
-  userRole: {
-    color: '#d4af37',
-    fontSize: 12,
-    textTransform: 'uppercase',
-    marginTop: 4,
-  },
-  deleteButton: {
-    backgroundColor: '#8B0000', 
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-  },
-  deleteButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  emptyText: {
-    color: '#aaa',
-    textAlign: 'center',
-    marginTop: 50,
-  },
+  userName: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  userEmail: { color: '#ccc', fontSize: 14 },
+  userRole: { color: '#d4af37', fontSize: 12, textTransform: 'uppercase', marginTop: 4 },
+  deleteButton: { backgroundColor: '#8B0000', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 5 },
+  deleteButtonText: { color: '#fff', fontWeight: 'bold' },
+  emptyText: { color: '#aaa', textAlign: 'center', marginTop: 50 },
   backButton: { position: 'absolute', bottom: 50, alignSelf: 'center' },
-  backButtonText: { 
-    color: '#d4af37', 
-    fontSize: 16,
-    fontWeight: 'bold'
-  },
+  backButtonText: { color: '#d4af37', fontSize: 16, fontWeight: 'bold' },
 });
