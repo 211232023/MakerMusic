@@ -28,7 +28,7 @@ import TeacherPerformanceListScreen from './src/pages/TeacherScreen/TeacherPerfo
 import StudentPerformanceScreen from './src/pages/TeacherScreen/StudentPerformanceScreen';
 import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
 import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
-import AddScheduleScreen from "./src/pages/TeacherScreen/AddScheduleScreen";
+import AddScheduleScreen from './src/pages/TeacherScreen/AddScheduleScreen';
 import AdminFinanceScreen from './src/pages/FinanceScreen/AdminFinanceScreen';
 
 // Telas Comuns

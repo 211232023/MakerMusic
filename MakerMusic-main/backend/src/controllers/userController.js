@@ -254,13 +254,55 @@ exports.getMyStudents = async (req, res) => {
         const userId = req.user.id;
         const userRole = req.user.role;
         
-        let query = 'SELECT id, name, email, student_level, instrument_category FROM users WHERE role = "ALUNO"';
+        // Query melhorada para trazer informações de classe e instrumento
+        // Garantimos que pegamos a classe vinculada ao professor se o papel for PROFESSOR
+        let query = '';
         let params = [];
 
-        // Se for professor, filtra apenas os alunos dele. Se for admin, vê todos para simulação.
         if (userRole === 'PROFESSOR') {
-            query += ' AND teacher_id = ?';
+            // Se for professor, buscamos o seu ID na tabela teachers primeiro
+            const [teachers] = await pool.query('SELECT id FROM teachers WHERE user_id = ?', [userId]);
+            const teacherTableId = teachers.length > 0 ? teachers[0].id : null;
+
+            query = `
+                SELECT 
+                    u.id, 
+                    u.name, 
+                    u.email, 
+                    u.student_level, 
+                    u.instrument_category,
+                    c.id as class_id,
+                    c.description as class_description,
+                    i.name as instrument_name
+                FROM users u
+                LEFT JOIN students s ON s.user_id = u.id
+                LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = 'ATIVO'
+                LEFT JOIN classes c ON e.class_id = c.id ${teacherTableId ? 'AND c.teacher_id = ?' : ''}
+                LEFT JOIN instruments i ON c.instrument_id = i.id
+                WHERE u.role = 'ALUNO' AND u.teacher_id = ?
+                GROUP BY u.id
+            `;
+            if (teacherTableId) params.push(teacherTableId);
             params.push(userId);
+        } else {
+            query = `
+                SELECT 
+                    u.id, 
+                    u.name, 
+                    u.email, 
+                    u.student_level, 
+                    u.instrument_category,
+                    c.id as class_id,
+                    c.description as class_description,
+                    i.name as instrument_name
+                FROM users u
+                LEFT JOIN students s ON s.user_id = u.id
+                LEFT JOIN enrollments e ON e.student_id = s.id AND e.status = 'ATIVO'
+                LEFT JOIN classes c ON e.class_id = c.id
+                LEFT JOIN instruments i ON c.instrument_id = i.id
+                WHERE u.role = 'ALUNO'
+                GROUP BY u.id
+            `;
         }
 
         const [students] = await pool.query(query, params);

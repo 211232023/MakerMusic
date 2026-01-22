@@ -35,6 +35,7 @@ const startServer = async () => {
     });
   } catch (error) {
     console.error('🚫 Falha ao iniciar o servidor. Verifique a ligação com a base de dados.');
+    console.error(error);
   }
 };
 

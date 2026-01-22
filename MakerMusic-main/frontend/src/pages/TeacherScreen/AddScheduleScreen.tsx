@@ -1,14 +1,17 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
-import { getStudentsByTeacher, createSchedule } from '../../services/api';
+import { getMyStudents, createSchedule } from '../../services/api';
 import CustomPicker from '../../components/CustomPicker';
 import { useToast } from '../../contexts/ToastContext'; 
 
 type Student = {
   id: string;
   name: string;
+  class_id: number;
+  class_description: string;
+  instrument_name: string;
 };
 
 const DAYS_OF_WEEK = [
@@ -28,6 +31,7 @@ export default function AddScheduleScreen() {
 
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>('SEGUNDA');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
@@ -35,11 +39,12 @@ export default function AddScheduleScreen() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(true);
-
+  
   const loadStudents = useCallback(async () => {
     if (user && token) {
       setIsLoadingStudents(true);
-      const studentList = await getStudentsByTeacher(user.id, token);
+      const studentList = await getMyStudents(token);
+
       if (Array.isArray(studentList)) {
         setStudents(studentList);
       }
@@ -51,8 +56,19 @@ export default function AddScheduleScreen() {
     loadStudents();
   }, [loadStudents]));
 
+  // Efeito para atualizar o aluno selecionado e suas informações automáticas
+  useEffect(() => {
+    if (selectedStudentId) {
+      const student = students.find(s => String(s.id) === String(selectedStudentId));
+      setSelectedStudent(student || null);
+    } else {
+      setSelectedStudent(null);
+    }
+  }, [selectedStudentId, students]);
+
   const resetFields = () => {
     setSelectedStudentId(null);
+    setSelectedStudent(null);
     setSelectedDay('SEGUNDA');
     setStartTime('');
     setEndTime('');
@@ -60,13 +76,20 @@ export default function AddScheduleScreen() {
   };
 
   const handleCreateSchedule = async () => {
-    if (!selectedStudentId || !startTime.trim() || !endTime.trim() || !activity.trim() || !selectedDay) {
+    if (
+      !selectedStudentId || 
+      !startTime.trim() || 
+      !endTime.trim() || 
+      !activity.trim() || 
+      !selectedDay
+    ) {
       showError('Por favor, preencha todos os campos, incluindo a atividade.');
       return;
     }
     if (!token) return;
 
     setIsLoading(true);
+
     const scheduleData = {
       studentId: selectedStudentId,
       dayOfWeek: selectedDay,
@@ -74,7 +97,7 @@ export default function AddScheduleScreen() {
       endTime,
       activity,
     };
-
+    
     const response = await createSchedule(scheduleData, token);
     setIsLoading(false);
 
@@ -90,7 +113,7 @@ export default function AddScheduleScreen() {
     { label: 'Selecione um aluno...', value: null },
     ...students.map(student => ({
       label: student.name,
-      value: student.id,
+      value: String(student.id), 
     }))
   ];
 
@@ -107,23 +130,42 @@ export default function AddScheduleScreen() {
             <ActivityIndicator color="#d4af37" />
           ) : (
             <View style={styles.form}>
-              <Text style={styles.label}>Aula</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                placeholder="Ex: Aula pratica de violão"
-                placeholderTextColor="#aaa"
-                value={activity}
-                onChangeText={setActivity}
-                multiline
-                numberOfLines={3}
-              />
-
+              
               <View style={styles.fieldSpacing}>
-                <Text style={styles.label}>Atribuir para o Aluno:</Text>
+                <Text style={styles.label}>1. Selecionar Aluno:</Text>
                 <CustomPicker
                   selectedValue={selectedStudentId}
                   onValueChange={setSelectedStudentId}
                   items={studentItems}
+                />
+              </View>
+
+              {/* Informações Automáticas */}
+              <View style={styles.infoContainer}>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Classe:</Text>
+                  <Text style={styles.infoValue}>
+                    {selectedStudent?.instrument_name || '---'}
+                  </Text>
+                </View>
+                <View style={styles.infoField}>
+                  <Text style={styles.infoLabel}>Turma:</Text>
+                  <Text style={styles.infoValue}>
+                    {selectedStudent?.class_description || '---'}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.fieldSpacing}>
+                <Text style={styles.label}>Descrição da Aula:</Text>
+                <TextInput
+                  style={[styles.input, styles.textArea]}
+                  placeholder="Ex: Aula prática"
+                  placeholderTextColor="#aaa"
+                  value={activity}
+                  onChangeText={setActivity}
+                  multiline
+                  numberOfLines={3}
                 />
               </View>
 
@@ -168,7 +210,11 @@ export default function AddScheduleScreen() {
           {isLoading ? (
             <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
           ) : (
-            <TouchableOpacity style={styles.button} onPress={handleCreateSchedule}>
+            <TouchableOpacity 
+              style={[styles.button, !selectedStudentId && styles.buttonDisabled]} 
+              onPress={handleCreateSchedule}
+              disabled={!selectedStudentId}
+            >
               <Text style={styles.buttonText}>Salvar Horário</Text>
             </TouchableOpacity>
           )}
@@ -212,7 +258,31 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   fieldSpacing: {
-    marginTop: 25,
+    marginTop: 20,
+  },
+  infoContainer: {
+    backgroundColor: '#2a292e',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#444',
+  },
+  infoField: {
+    flexDirection: 'row',
+    marginBottom: 5,
+  },
+  infoLabel: {
+    color: '#aaa',
+    fontSize: 14,
+    width: 60,
+    fontWeight: 'bold',
+  },
+  infoValue: {
+    color: '#f6e27f',
+    fontSize: 14,
+    fontWeight: 'bold',
+    flex: 1,
   },
   row: {
     flexDirection: 'row',
@@ -244,6 +314,9 @@ const styles = StyleSheet.create({
     maxWidth: 400,
     alignItems: 'center', 
     marginTop: 40 
+  },
+  buttonDisabled: {
+    backgroundColor: '#555',
   },
   buttonText: { 
     color: '#1c1b1f', 
