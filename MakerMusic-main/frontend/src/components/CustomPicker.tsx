@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 
 interface CustomPickerProps {
@@ -15,12 +15,11 @@ export default function CustomPicker({
   selectedValue,
   onValueChange,
   items,
-  placeholder = 'Selecione...',
   style,
   containerStyle,
 }: CustomPickerProps) {
   
-  // Para Web, usamos um select HTML nativo
+  // 1. VERSÃO WEB
   if (Platform.OS === 'web') {
     return (
       <View style={[styles.webContainer, containerStyle]}>
@@ -61,22 +60,34 @@ export default function CustomPicker({
     );
   }
 
-  // Para Mobile (iOS/Android), usamos o Picker nativo
+  // 2. VERSÃO MOBILE (iOS e Android)
   return (
-    <View style={[styles.mobileContainer, containerStyle]}>
+    <View style={[
+      styles.mobileContainer, 
+      Platform.OS === 'ios' ? styles.iosContainer : styles.androidContainer,
+      containerStyle
+    ]}>
       <Picker
         selectedValue={selectedValue}
         onValueChange={onValueChange}
-        style={[styles.picker, style]}
+        style={[
+          styles.picker, 
+          Platform.OS === 'ios' ? styles.iosPicker : styles.androidPicker,
+          style
+        ]}
         dropdownIconColor="#d4af37"
-        itemStyle={{ color: '#fff' }}
+        mode={Platform.OS === 'android' ? "dropdown" : undefined}
+        // No iOS, o itemStyle é essencial para a visibilidade do texto na roda
+        itemStyle={Platform.OS === 'ios' ? { color: '#fff', fontSize: 18, height: 120 } : undefined}
       >
         {items.map((item, index) => (
           <Picker.Item
             key={index}
             label={item.label}
             value={item.value}
-            color={item.color || '#fff'}
+            // No Android, usamos cor escura para o dropdown branco nativo
+            // No iOS, a cor é controlada pelo itemStyle acima
+            color={Platform.OS === 'android' ? '#333' : '#fff'}
           />
         ))}
       </Picker>
@@ -96,9 +107,28 @@ const styles = StyleSheet.create({
     backgroundColor: '#333',
     borderRadius: 10,
     marginBottom: 20,
+    overflow: 'hidden',
+  },
+  androidContainer: {
+    height: 60,
+    justifyContent: 'center',
+  },
+  iosContainer: {
+    // No iOS, o Picker nativo é uma roda, então precisa de mais altura
+    height: 120, 
+    justifyContent: 'center',
+    backgroundColor: '#2a2a2a', // Um pouco mais claro para destacar no fundo preto
   },
   picker: {
+    width: '100%',
+  },
+  androidPicker: {
     color: '#fff',
     height: 60,
+  },
+  iosPicker: {
+    // Estilos específicos para a roda do iOS
+    height: 120,
+    color: '#fff',
   },
 });

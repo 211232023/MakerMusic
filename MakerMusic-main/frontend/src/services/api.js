@@ -1,4 +1,7 @@
-const BASE_URL = 'http://localhost:3000/api';
+import { Platform } from 'react-native';
+import { BASE_API_URL } from '../config/config';
+
+const BASE_URL = BASE_API_URL;
 
 export const registerUser = async (userData) => {
   try {
@@ -69,7 +72,7 @@ export async function resetPassword({ token, newPassword }) {
 export async function updatePassword({ email, newPassword }) {
   try {
     // Nota: Esta rota está sendo substituída pelo fluxo de token/resetPassword
-    const response = await fetch("http://localhost:3000/update-password", {
+    const response = await fetch(`${BASE_URL}/update-password`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, newPassword })
@@ -85,10 +88,8 @@ export async function updatePassword({ email, newPassword }) {
 
 export const getMyTasks = async () => {
   try {
-    const headers = await createAuthHeaders();
     const response = await fetch(`${BASE_URL}/tasks`, {
       method: 'GET',
-      headers: headers,
     });
     return response.json();
   } catch (error) {
@@ -203,7 +204,7 @@ export const getStudentPerformance = async (studentId, token) => {
 
 export const getChatHistory = async (otherUserId, token) => {
   try {
-    const response = await fetch(`${BASE_URL}/chat/${otherUserId}`, {
+    const response = await fetch(`${BASE_URL}/chat/history/${otherUserId}`, {
       headers: { 'Authorization': `Bearer ${token}` },
     });
     return response.json();
@@ -213,20 +214,84 @@ export const getChatHistory = async (otherUserId, token) => {
   }
 };
 
-export const sendMessage = async (receiverId, messageText, token) => {
+export const sendMessage = async (receiverId, messageText, token, extraData = {}) => {
   try {
-    const response = await fetch(`${BASE_URL}/chat`, {
+    const response = await fetch(`${BASE_URL}/chat/send`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ receiverId, messageText }),
+      body: JSON.stringify({ receiverId, messageText, ...extraData }),
     });
     return response.json();
   } catch (error) {
     console.error('Erro ao enviar mensagem:', error);
     return { message: 'Não foi possível ligar ao servidor.' };
+  }
+};
+
+export const uploadChatFile = async (file, token) => {
+  try {
+    const formData = new FormData();
+    
+    if (Platform.OS === 'web') {
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+      formData.append('file', blob, file.name || 'upload');
+    } else {
+      // No Mobile (Android/iOS)
+      let fileUri = file.uri;
+      
+      // Correção para Android: garantir que o URI comece com file:// se necessário
+      if (Platform.OS === 'android' && !fileUri.startsWith('file://') && !fileUri.startsWith('content://')) {
+        fileUri = 'file://' + fileUri;
+      }
+
+      let fileType = file.type;
+      const extension = file.name ? file.name.split('.').pop().toLowerCase() : '';
+      const mimeMap = {
+        'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png', 'gif': 'image/gif',
+        'mp4': 'video/mp4', 'mov': 'video/quicktime', 'm4v': 'video/x-m4v', '3gp': 'video/3gpp',
+        'mp3': 'audio/mpeg', 'm4a': 'audio/mp4', 'wav': 'audio/wav', 'ogg': 'audio/ogg',
+        'pdf': 'application/pdf', 'doc': 'application/msword', 'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      };
+
+      if (mimeMap[extension]) {
+        fileType = mimeMap[extension];
+      } else if (!fileType || fileType === 'video' || fileType === 'audio' || fileType === 'image') {
+        fileType = fileType ? `${fileType}/any` : 'application/octet-stream';
+      }
+
+      // No React Native, o objeto para upload de arquivo deve ter esta estrutura
+      formData.append('file', {
+        uri: fileUri,
+        name: file.name || `upload_${Date.now()}`,
+        type: fileType,
+      });
+    }
+
+    const response = await fetch(`${BASE_URL}/chat/upload`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Importante: NÃO definir 'Content-Type' manualmente ao usar FormData no React Native
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return { 
+        message: errorData.message || `Erro no servidor: ${response.status}`,
+        status: response.status 
+      };
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Erro no upload do arquivo:', error);
+    return { message: 'Erro ao conectar ao servidor para upload.' };
   }
 };
 
