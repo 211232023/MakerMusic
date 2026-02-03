@@ -23,9 +23,20 @@ export default function RegisterScreen() {
 
     try {
       const response = await registerUser(userData);
-      if (response.userId) { 
+      
+      // O backend retorna 'Usuário registrado com sucesso!' na propriedade 'message'
+      if (response.message === 'Usuário registrado com sucesso!') { 
         showSuccess("Conta de Aluno criada com sucesso! Você já pode fazer login.");
-        setTimeout(() => navigation.goBack(), 1000);
+        
+        // Limpar campos após o sucesso
+        setName("");
+        setEmail("");
+        setPassword("");
+
+        // Aumentado para 4000ms (4 segundos) para que o usuário possa ler a mensagem com calma
+        setTimeout(() => {
+          navigation.navigate('Login');
+        }, 3000);
       } else {
         showError(response.message || "Ocorreu um erro ao criar a conta.");
       }

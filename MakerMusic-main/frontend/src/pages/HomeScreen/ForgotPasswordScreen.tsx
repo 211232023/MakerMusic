@@ -11,7 +11,6 @@ export default function ForgotPasswordScreen() {
   const { showError, showSuccess, showWarning } = useToast();
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
   const handleForgotPassword = async () => {
     if (!email.trim()) {
@@ -21,14 +20,19 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       const response = await forgotPassword(email);
-      if (response.message) {
-        setMessage(response.message);
-        if (response.message.includes('enviado para o seu e-mail')) {
-            showSuccess("Token enviado. Você será redirecionado para redefinir a senha.");
-            setTimeout(() => { navigation.navigate('ResetPassword', { email: email }); }, 1500);
-        } else { showWarning(response.message); }
+      // A resposta do backend agora é "Token enviado!" (conforme userController.js)
+      if (response.message === 'Token enviado!') {
+          showSuccess("Token enviado para o seu e-mail!");
+          // Redireciona para a tela de ResetPassword passando o e-mail
+          setTimeout(() => { 
+            navigation.navigate('ResetPassword', { email: email }); 
+          }, 1500);
+      } else {
+          showWarning(response.message || "Erro ao processar solicitação.");
       }
-    } catch (error) { showError("Não foi possível conectar ao servidor."); }
+    } catch (error) { 
+      showError("Não foi possível conectar ao servidor."); 
+    }
     setIsLoading(false);
   };
 
@@ -36,7 +40,7 @@ export default function ForgotPasswordScreen() {
     <View style={styles.container}>
       <View style={styles.formContainer}>
         <Text style={styles.title}>Recuperar Senha</Text>
-        <Text style={styles.subtitle}>Digite seu e-mail para receber o link de redefinição de senha.</Text>
+        <Text style={styles.subtitle}>Digite seu e-mail para receber o token de redefinição.</Text>
 
         <TextInput
           placeholder="Digite seu e-mail"
@@ -48,19 +52,15 @@ export default function ForgotPasswordScreen() {
           autoCapitalize="none"
         />
 
-        {message ? <Text style={styles.messageText}>{message}</Text> : null}
-
         {isLoading ? (
           <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
         ) : (
           <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
-            <Text style={styles.buttonText}>Enviar Link de Redefinição</Text>
+            <Text style={styles.buttonText}>Enviar Token</Text>
           </TouchableOpacity>
         )}
 
-        <TouchableOpacity onPress={() => navigation.replace('Login')}>
-          <Text style={styles.backToLoginText}>Voltar para o Login</Text>
-        </TouchableOpacity>
+        {/* Botão de voltar removido conforme solicitado */}
       </View>
     </View>
   );
@@ -114,16 +114,5 @@ const styles = StyleSheet.create({
     color: "#1c1b1f", 
     fontWeight: "bold", 
     fontSize: 18 
-  },
-  messageText: { 
-    color: "#4CAF50", 
-    marginTop: 10, 
-    textAlign: 'center' 
-  },
-  backToLoginText: {
-    color: "#d4af37", 
-    marginTop: 20, 
-    fontSize: 16, 
-    fontWeight: 'bold' 
   }
 });

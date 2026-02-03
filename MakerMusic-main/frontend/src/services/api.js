@@ -401,6 +401,24 @@ export const getMyPayments = async (token) => {
   }
 };
 
+// EXPORTANDO A FUNÇÃO QUE ESTAVA FALTANDO
+export const updatePaymentStatus = async (paymentId, status, token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/finance/${paymentId}/status`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao atualizar status do pagamento:', error);
+    return { message: 'Não foi possível ligar ao servidor.' };
+  }
+};
+
 //Nova função para o admin
 export const registerUserByAdmin = async (userData, token) => {
   try {

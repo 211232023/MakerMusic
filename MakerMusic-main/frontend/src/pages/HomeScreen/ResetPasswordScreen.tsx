@@ -21,6 +21,7 @@ export default function ResetPasswordScreen() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleResetPassword = async () => {
     if (!token.trim() || !newPassword.trim() || !confirmPassword.trim()) {
@@ -40,9 +41,7 @@ export default function ResetPasswordScreen() {
       
       if (response.message) {
         showSuccess(response.message);
-        setTimeout(() => {
-          navigation.replace('Login');
-        }, 1500);
+        setIsSuccess(true);
       } else {
         showError("Não foi possível redefinir a senha.");
       }
@@ -63,48 +62,60 @@ export default function ResetPasswordScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.formContainer}>
           <Text style={styles.title}>Redefinir Senha</Text>
-          <Text style={styles.subtitle}>
-            Insira o código enviado para <Text style={{ fontWeight: 'bold', color: '#d4af37' }}>{email}</Text> e sua nova senha.
-          </Text>
+          
+          {!isSuccess ? (
+            <>
+              <Text style={styles.subtitle}>
+                Insira o código enviado para <Text style={{ fontWeight: 'bold', color: '#d4af37' }}>{email}</Text> e sua nova senha.
+              </Text>
 
-          <TextInput
-            placeholder="Código de Recuperação (Token)"
-            placeholderTextColor="#aaa"
-            value={token}
-            onChangeText={setToken}
-            style={styles.input}
-            keyboardType="numeric"
-          />
+              <TextInput
+                placeholder="Código de Recuperação (Token)"
+                placeholderTextColor="#aaa"
+                value={token}
+                onChangeText={setToken}
+                style={styles.input}
+                keyboardType="numeric"
+              />
 
-          <TextInput
-            placeholder="Nova Senha"
-            placeholderTextColor="#aaa"
-            value={newPassword}
-            onChangeText={setNewPassword}
-            style={styles.input}
-            secureTextEntry
-          />
+              <TextInput
+                placeholder="Nova Senha"
+                placeholderTextColor="#aaa"
+                value={newPassword}
+                onChangeText={setNewPassword}
+                style={styles.input}
+                secureTextEntry
+              />
 
-          <TextInput
-            placeholder="Confirmar Nova Senha"
-            placeholderTextColor="#aaa"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            style={styles.input}
-            secureTextEntry
-          />
+              <TextInput
+                placeholder="Confirmar Nova Senha"
+                placeholderTextColor="#aaa"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                style={styles.input}
+                secureTextEntry
+              />
 
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+              {isLoading ? (
+                <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+              ) : (
+                <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
+                  <Text style={styles.buttonText}>Redefinir Senha</Text>
+                </TouchableOpacity>
+              )}
+            </>
           ) : (
-            <TouchableOpacity style={styles.button} onPress={handleResetPassword}>
-              <Text style={styles.buttonText}>Redefinir Senha</Text>
-            </TouchableOpacity>
-          )}
+            <>
+              <View style={styles.successContainer}>
+                <Text style={styles.successText}>Senha redefinida com sucesso!</Text>
+                <Text style={styles.successSubtext}>Você já pode utilizar sua nova senha para acessar a aplicação.</Text>
+              </View>
 
-          <TouchableOpacity onPress={() => navigation.replace('Login')} style={styles.linkButton}>
-            <Text style={styles.backToLoginText}>Voltar para o Login</Text>
-          </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.replace('Login')} style={[styles.button, styles.secondaryButton]}>
+                <Text style={styles.secondaryButtonText}>Voltar para o Login</Text>
+              </TouchableOpacity>
+            </>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -177,14 +188,36 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 18,
   },
-  linkButton: {
+  secondaryButton: {
+    backgroundColor: "#d4af37",
     marginTop: 20,
-    width: "100%",
-    alignItems: "center",
   },
-  backToLoginText: {
-    color: "#d4af37",
-    fontSize: 16,
+  secondaryButtonText: {
+    color: "#1c1b1f",
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  successContainer: {
+    alignItems: 'center',
+    marginVertical: 30,
+    padding: 20,
+    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#d4af37',
+    width: '100%',
+  },
+  successText: {
+    color: '#f6e27f',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  successSubtext: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 22,
   }
 });

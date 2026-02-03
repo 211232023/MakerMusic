@@ -10,4 +10,6 @@ router.get('/my-payments', authMiddleware, authorize(['ALUNO']), financeControll
 
 router.get('/students', authMiddleware, authorize(['ADMIN', 'FINANCEIRO']), financeController.getAllStudents);
 
+router.put('/:paymentId/status', authMiddleware, financeController.updatePaymentStatus);
+
 module.exports = router;
