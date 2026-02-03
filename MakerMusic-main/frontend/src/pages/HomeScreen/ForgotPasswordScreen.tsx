@@ -5,6 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import { useToast } from "../../contexts/ToastContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { RootStackParamList } from "../src/types/navigation";
+import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>>();
@@ -20,10 +21,8 @@ export default function ForgotPasswordScreen() {
     setIsLoading(true);
     try {
       const response = await forgotPassword(email);
-      // A resposta do backend agora é "Token enviado!" (conforme userController.js)
       if (response.message === 'Token enviado!') {
           showSuccess("Token enviado para o seu e-mail!");
-          // Redireciona para a tela de ResetPassword passando o e-mail
           setTimeout(() => { 
             navigation.navigate('ResetPassword', { email: email }); 
           }, 1500);
@@ -38,6 +37,13 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigation.navigate('Login')}
+      >
+        <Ionicons name="arrow-back" size={28} color="#f6e27f" />
+      </TouchableOpacity>
+
       <View style={styles.formContainer}>
         <Text style={styles.title}>Recuperar Senha</Text>
         <Text style={styles.subtitle}>Digite seu e-mail para receber o token de redefinição.</Text>
@@ -59,8 +65,6 @@ export default function ForgotPasswordScreen() {
             <Text style={styles.buttonText}>Enviar Token</Text>
           </TouchableOpacity>
         )}
-
-        {/* Botão de voltar removido conforme solicitado */}
       </View>
     </View>
   );
@@ -74,6 +78,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#1c1b1f", 
     padding: 20, 
     width: '100%' 
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 10,
   },
   formContainer: { 
     width: '100%', 
