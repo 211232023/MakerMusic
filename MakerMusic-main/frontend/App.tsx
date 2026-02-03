@@ -1,92 +1,129 @@
-import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { UserProvider, useUser } from './src/pages/src/UserContext';
-import { ToastProvider } from './src/contexts/ToastContext';
-import AdminRegisterUserScreen from './src/pages/AdminScreen/AdminRegisterUserScreen';
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
+import { forgotPassword } from "../../services/api";
+import { useNavigation } from "@react-navigation/native";
+import { useToast } from "../../contexts/ToastContext";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { RootStackParamList } from "../src/types/navigation";
+import { Ionicons } from '@expo/vector-icons';
 
-// Telas de Autenticação
-import LoginScreen from './src/pages/HomeScreen/LoginSreen';
-import RegisterScreen from './src/pages/HomeScreen/RegisterScreen';
-//terceira alteração de recuperação de senha
-import ForgotPasswordScreen from './src/pages/HomeScreen/ForgotPasswordScreen';
-import ResetPasswordScreen from './src/pages/HomeScreen/ResetPasswordScreen.tsx';
+export default function ForgotPasswordScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList, 'ForgotPassword'>>();
+  const { showError, showSuccess, showWarning } = useToast();
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-// Telas Principais por Papel
-import HomeScreen from './src/pages/HomeScreen/HomeScreen';
-import TeacherScreen from './src/pages/TeacherScreen/TeacherScreen';
-import AdminScreen from './src/pages/AdminScreen/AdminScreen';
-import FinanceScreen from './src/pages/FinanceScreen/FinanceScreen';
-import MainScreenRouter from './src/pages/src/MainScreenRouter';
-
-// Telas Específicas
-import StudentTasksScreen from './src/pages/StudentScreen/StudentTasksScreen';
-import TeacherTasksScreen from './src/pages/TeacherScreen/TasksScreen';
-import ChatScreen from './src/pages/HomeScreen/ChatScreen';
-import TeacherChatListScreen from './src/pages/TeacherScreen/TeacherChatListScreen';
-import TeacherPerformanceListScreen from './src/pages/TeacherScreen/TeacherPerformanceListScreen.tsx';
-import StudentPerformanceScreen from './src/pages/TeacherScreen/StudentPerformanceScreen';
-import ManageUsersScreen from './src/pages/AdminScreen/ManageUsersScreen';
-import EntitiesScreen from './src/pages/HomeScreen/EntitiesScreen';
-import AddScheduleScreen from './src/pages/TeacherScreen/AddScheduleScreen';
-import AdminFinanceScreen from './src/pages/FinanceScreen/AdminFinanceScreen';
-
-// Telas Comuns
-import HorariosScreen from './src/pages/HomeScreen/HorariosScreen';
-import PymentsScreen from './src/pages/HomeScreen/PymentsScreen';
-import PresencaScreen from './src/pages/TeacherScreen/PresençaScreen'; 
-
-import { RootStackParamList } from './src/pages/src/types/navigation';
-
-const Stack = createNativeStackNavigator<RootStackParamList>();
-
-function AppNavigator() {
-  const { user } = useUser();
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      showError("Por favor, digite seu e-mail.");
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await forgotPassword(email);
+      if (response.message === 'Token enviado!') {
+          showSuccess("Token enviado para o seu e-mail!");
+          setTimeout(() => { 
+            navigation.navigate('ResetPassword', { email: email }); 
+          }, 1500);
+      } else {
+          showWarning(response.message || "Erro ao processar solicitação.");
+      }
+    } catch (error) { 
+      showError("Não foi possível conectar ao servidor."); 
+    }
+    setIsLoading(false);
+  };
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
-        <>
-          {/* Tela principal que roteia para o papel correto */}
-          <Stack.Screen name="MainRouter" component={MainScreenRouter} />
-          
-          {/* Telas acessíveis após o login */}
-          <Stack.Screen name="StudentTasks" component={StudentTasksScreen} />
-          <Stack.Screen name="TasksScreen" component={TeacherTasksScreen} />
-          <Stack.Screen name="TeacherChatList" component={TeacherChatListScreen} />
-          <Stack.Screen name="TeacherPerformanceList" component={TeacherPerformanceListScreen} />
-          <Stack.Screen name="ManageUsers" component={ManageUsersScreen} />
-          <Stack.Screen name="Entities" component={EntitiesScreen} />
-          <Stack.Screen name="HorariosScreen" component={HorariosScreen} />
-          <Stack.Screen name="PymentsScreen" component={PymentsScreen} />
-          <Stack.Screen name="PresençaScreen" component={PresencaScreen} />
-          <Stack.Screen name="Chat" component={ChatScreen} />
-          <Stack.Screen name="StudentPerformance" component={StudentPerformanceScreen} />
-          <Stack.Screen name="AddSchedule" component={AddScheduleScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="AdminFinance" component={AdminFinanceScreen} options={{ headerShown: false }} />
-          <Stack.Screen name="AdminRegisterUser" component={AdminRegisterUserScreen} />
-        </>
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          {/* Alteração da recuperação de senha */}
-          <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-          <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} /> 
-        </>
-      )}
-    </Stack.Navigator>
+    <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.backButton} 
+        onPress={() => navigation.navigate('Login')}
+      >
+        <Ionicons name="arrow-back" size={28} color="#f6e27f" />
+      </TouchableOpacity>
+
+      <View style={styles.formContainer}>
+        <Text style={styles.title}>Recuperar Senha</Text>
+        <Text style={styles.subtitle}>Digite seu e-mail para receber o token de redefinição.</Text>
+
+        <TextInput
+          placeholder="Digite seu e-mail"
+          placeholderTextColor="#aaa"
+          value={email}
+          onChangeText={setEmail}
+          style={styles.input}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
+        ) : (
+          <TouchableOpacity style={styles.button} onPress={handleForgotPassword}>
+            <Text style={styles.buttonText}>Enviar Token</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
   );
 }
 
-export default function App() {
-  return (
-    <ToastProvider>
-      <UserProvider>
-        <NavigationContainer>
-          <AppNavigator />
-        </NavigationContainer>
-      </UserProvider>
-    </ToastProvider>
-  );
-}
+const styles = StyleSheet.create({
+  container: { 
+    flex: 1, 
+    justifyContent: "center", 
+    alignItems: "center", 
+    backgroundColor: "#1c1b1f", 
+    padding: 20, 
+    width: '100%' 
+  },
+  backButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  formContainer: { 
+    width: '100%', 
+    maxWidth: 600, 
+    alignSelf: 'center', 
+    alignItems: 'center' 
+  },
+  title: { 
+    color: "#f6e27f", 
+    fontSize: 28, 
+    fontWeight: "bold", 
+    marginBottom: 10 
+  },
+  subtitle: { 
+    color: "#fff", 
+    fontSize: 16, 
+    textAlign: 'center', 
+    marginBottom: 30 
+  },
+  input: { 
+    width: '100%', 
+    backgroundColor: "#333", 
+    color: "#fff", 
+    padding: 15, 
+    borderRadius: 10, 
+    marginBottom: 15, 
+    fontSize: 16 
+  },
+  button: { 
+    backgroundColor: "#d4af37", 
+    padding: 15, 
+    borderRadius: 10, 
+    width: '100%', 
+    alignItems: "center", 
+    marginTop: 20 
+  },
+  buttonText: { 
+    color: "#1c1b1f", 
+    fontWeight: "bold", 
+    fontSize: 18 
+  }
+});
