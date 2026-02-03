@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from "react-native";
-import { forgotPassword } from "../../services/api";
+import { forgotPassword } from "../frontend/src/services/api";
 import { useNavigation } from "@react-navigation/native";
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "../frontend/src/contexts/ToastContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { RootStackParamList } from "../src/types/navigation";
+import { RootStackParamList } from "../frontend/src/pages/src/types/navigation";
 import { Ionicons } from '@expo/vector-icons';
 
 export default function ForgotPasswordScreen() {
