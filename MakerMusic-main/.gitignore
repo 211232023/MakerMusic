@@ -2,6 +2,7 @@
 
 # dependencies
 node_modules/
+**/node_modules/
 
 # Expo
 .expo/
@@ -26,12 +27,17 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
-# macOS
+# macOS / Windows
 .DS_Store
-*.pem
+Thumbs.db
 
 # local env files
-.env*.local
+.env
+.env.*
+!.env.example
 
 # typescript
 *.tsbuildinfo
+
+# VS Code
+.vscode/
