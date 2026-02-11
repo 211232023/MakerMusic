@@ -101,7 +101,7 @@ export default function StudentPerformanceScreen() {
               <View key={index} style={[styles.taskCard, item.completed ? styles.taskCompletedBorder : styles.taskPendingBorder]}>
                 <View style={styles.taskHeader}>
                   <View style={[styles.taskStatusIcon, { backgroundColor: item.completed ? '#4CAF50' : '#FF9800' }]}>
-                    <Ionicons name={item.completed ? "checkmark" : "time"} size={18} color="#fff" />
+                    <Ionicons name={item.completed ? "checkmark" : "time"} size={32} color="#fff" />
                   </View>
                   <Text style={styles.taskTitle}>{item.title}</Text>
                 </View>
@@ -177,7 +177,10 @@ const styles = StyleSheet.create({
     gap: 12,
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 30,
+    marginBottom: 20,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   statCard: {
     backgroundColor: '#2a292e',
@@ -187,7 +190,6 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: isLargeScreen ? 150 : 100,
     borderWidth: 2,
-    borderColor: '#333',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -219,16 +221,15 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 13,
-    color: '#aaa',
+    color: '#fff',
     textAlign: 'center',
-    marginTop: 5,
     fontWeight: '600',
   },
   progressSection: {
     backgroundColor: '#2a292e',
     padding: 20,
     borderRadius: 15,
-    marginBottom: 25,
+    marginBottom: 20,
     borderWidth: 1,
     borderColor: '#333',
     shadowColor: '#000',
@@ -236,45 +237,51 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 4,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#f6e27f',
     marginBottom: 15,
   },
   progressBarContainer: {
-    height: 12,
+    height: 15,
     backgroundColor: '#1c1b1f',
-    borderRadius: 6,
+    borderRadius: 8,
     overflow: 'hidden',
     marginBottom: 10,
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#4CAF50',
-    borderRadius: 6,
+    borderRadius: 8,
   },
   progressText: {
     color: '#aaa',
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
   },
   tasksSection: {
     marginBottom: 20,
+    maxWidth: 600,
+    alignSelf: 'center',
+    width: '100%',
   },
   taskCard: {
     backgroundColor: '#2a292e',
-    padding: 15,
-    borderRadius: 12,
-    marginBottom: 12,
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#333',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
   },
   taskCompletedBorder: {
     borderLeftWidth: 4,
@@ -288,14 +295,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 10,
+    gap: 15,
   },
   taskStatusIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
   taskTitle: {
     flex: 1,
@@ -306,13 +313,14 @@ const styles = StyleSheet.create({
   taskDescription: {
     color: '#aaa',
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: 12,
     lineHeight: 20,
   },
   taskFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginTop: 5,
   },
   statusChip: {
     paddingHorizontal: 12,

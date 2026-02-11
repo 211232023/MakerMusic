@@ -104,11 +104,19 @@ export default function PymentsScreen() {
   const formatDate = (dateString: string) => {
     if (!dateString) return "Data não disponível";
     try {
-      const date = new Date(dateString.split('T')[0] + 'T12:00:00');
-      if (isNaN(date.getTime())) return "Data inválida";
+      if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        return dateString;
+      }
+      const cleaned = dateString.includes('T') ? dateString.split('T')[0] : dateString;
+      const parts = cleaned.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+      }
+      const date = new Date(cleaned + 'T12:00:00');
+      if (isNaN(date.getTime())) return "Data não disponível";
       return date.toLocaleDateString('pt-BR');
     } catch (e) {
-      return "Data inválida";
+      return "Data não disponível";
     }
   };
 

@@ -17,6 +17,10 @@ router.get('/my-students', authMiddleware, authorize(['PROFESSOR', 'ADMIN']), us
 
 router.get('/my-teacher', authMiddleware, authorize(['ALUNO']), userController.getMyTeacher);
 
+router.get('/student/stats', authMiddleware, authorize(['ALUNO', 'ADMIN']), userController.getStudentStats);
+
+router.get('/teacher/stats', authMiddleware, authorize(['PROFESSOR', 'ADMIN']), userController.getTeacherStats);
+
 router.put('/update-password', userController.updatePassword);
 
 module.exports = router;

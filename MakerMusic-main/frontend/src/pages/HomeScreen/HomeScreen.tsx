@@ -26,14 +26,21 @@ export default function HomeScreen() {
   const navigation = useNavigation<HomeScreenNavigationProp>();
   const { user, logout, token, viewRole } = useUser();
   const { showError, showWarning } = useToast(); 
-  const [stats, setStats] = React.useState({ tasks: 0, classes: 0, progress: 0 });
+  const [stats, setStats] = React.useState({ tasks: 0, completedTasks: 0, classes: 0, progress: 0 });
 
   const fetchStats = React.useCallback(async () => {
     if (token) {
       try {
+        console.log('[FRONTEND] Buscando estatísticas do aluno...');
         const data = await getStudentStats(token);
-        if (data && !data.message) {
-          setStats(data);
+        console.log('[FRONTEND] Dados recebidos:', data);
+        if (data && typeof data === 'object' && !data.message) {
+          setStats({
+            tasks: Number(data.tasks) || 0,
+            completedTasks: Number(data.completedTasks) || 0,
+            classes: Number(data.classes) || 0,
+            progress: Number(data.progress) || 0
+          });
         }
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error);
@@ -92,20 +99,36 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.statsSection}>
-            <Text style={styles.sectionTitle}>Resumo Rápido</Text>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="stats-chart-outline" size={24} color="#f6e27f" />
+              <Text style={styles.sectionTitle}>Resumo Rápido</Text>
+            </View>
             <View style={styles.statsGrid}>
-              <View style={styles.statCard}>
-                <Ionicons name="clipboard" size={28} color="#81c784" />
+              <View style={[styles.statCard, { borderColor: '#81c784' }]}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(129, 199, 132, 0.2)' }]}>
+                  <Ionicons name="clipboard" size={28} color="#81c784" />
+                </View>
                 <Text style={styles.statValue}>{stats.tasks}</Text>
-                <Text style={styles.statLabel}>Tarefas</Text>
+                <Text style={styles.statLabel}>Total Tarefas</Text>
               </View>
-              <View style={styles.statCard}>
-                <Ionicons name="calendar" size={28} color="#64b5f6" />
+              <View style={[styles.statCard, { borderColor: '#4CAF50' }]}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(76, 175, 80, 0.2)' }]}>
+                  <Ionicons name="checkmark-done" size={28} color="#4CAF50" />
+                </View>
+                <Text style={styles.statValue}>{stats.completedTasks}</Text>
+                <Text style={styles.statLabel}>Concluídas</Text>
+              </View>
+              <View style={[styles.statCard, { borderColor: '#64b5f6' }]}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(100, 181, 246, 0.2)' }]}>
+                  <Ionicons name="calendar" size={28} color="#64b5f6" />
+                </View>
                 <Text style={styles.statValue}>{stats.classes}</Text>
                 <Text style={styles.statLabel}>Aulas</Text>
               </View>
-              <View style={styles.statCard}>
-                <Ionicons name="trophy" size={28} color="#ffd54f" />
+              <View style={[styles.statCard, { borderColor: '#ffd54f' }]}>
+                <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 213, 79, 0.2)' }]}>
+                  <Ionicons name="trophy" size={28} color="#ffd54f" />
+                </View>
                 <Text style={styles.statValue}>{stats.progress}%</Text>
                 <Text style={styles.statLabel}>Progresso</Text>
               </View>
@@ -197,38 +220,56 @@ const styles = StyleSheet.create({
   statsSection: {
     marginBottom: 30,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#f6e27f',
-    marginBottom: 15,
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 15,
+    gap: 12,
     flexWrap: 'wrap',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
   statCard: {
     backgroundColor: '#2a292e',
-    padding: 20,
+    padding: 15,
     borderRadius: 15,
     alignItems: 'center',
-    flex: 1,
-    minWidth: isLargeScreen ? 150 : 90,
-    borderWidth: 1,
-    borderColor: '#333',
+    width: '48%',
+    marginBottom: 5,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 10,
   },
   statLabel: {
     fontSize: 12,
-    color: '#aaa',
-    marginTop: 5,
+    color: '#fff',
+    marginTop: 4,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   menuGrid: {
     gap: 15,

@@ -443,7 +443,13 @@ export const getStudentStats = async (token) => {
     const response = await fetch(`${BASE_URL}/users/student/stats`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    return response.json();
+    if (!response.ok) {
+      console.error('Erro na resposta:', response.status);
+      return { tasks: 0, classes: 0, progress: 0 };
+    }
+    const data = await response.json();
+    console.log('[API] getStudentStats retornou:', data);
+    return data;
   } catch (error) {
     console.error('Erro ao buscar estatísticas do aluno:', error);
     return { tasks: 0, classes: 0, progress: 0 };
@@ -455,7 +461,13 @@ export const getTeacherStats = async (token) => {
     const response = await fetch(`${BASE_URL}/users/teacher/stats`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
-    return response.json();
+    if (!response.ok) {
+      console.error('Erro na resposta:', response.status);
+      return { students: 0, classesToday: 0, tasks: 0 };
+    }
+    const data = await response.json();
+    console.log('[API] getTeacherStats retornou:', data);
+    return data;
   } catch (error) {
     console.error('Erro ao buscar estatísticas do professor:', error);
     return { students: 0, classesToday: 0, tasks: 0 };

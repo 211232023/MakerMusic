@@ -167,3 +167,89 @@ exports.updatePassword = async (req, res) => {
     res.status(500).json({ message: 'Erro no servidor.' });
   }
 };
+
+// Estatísticas do Aluno
+exports.getStudentStats = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    console.log('[STATS] Buscando estatísticas para aluno ID:', studentId);
+    
+    const [taskRows] = await pool.query(`
+      SELECT 
+        COUNT(DISTINCT t.id) as total,
+        COALESCE(SUM(CASE WHEN ts.completed = 1 THEN 1 ELSE 0 END), 0) as completed
+      FROM tasks t
+      LEFT JOIN task_submissions ts ON t.id = ts.task_id AND ts.student_id = ?
+      WHERE t.student_id = ?
+    `, [studentId, studentId]);
+    
+    const [scheduleRows] = await pool.query(`
+      SELECT COUNT(*) as total FROM schedules WHERE student_id = ?
+    `, [studentId]);
+    
+    const totalTasks = parseInt(taskRows[0]?.total) || 0;
+    const completedTasks = parseInt(taskRows[0]?.completed) || 0;
+    const totalClasses = parseInt(scheduleRows[0]?.total) || 0;
+    const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    
+    console.log('[STATS] Resultado:', { tasks: totalTasks, completedTasks, classes: totalClasses, progress });
+    
+    res.json({
+      tasks: totalTasks,
+      completedTasks: completedTasks,
+      classes: totalClasses,
+      progress: progress
+    });
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do aluno:', error);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+// Estatísticas do Professor
+exports.getTeacherStats = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    console.log('[STATS] Buscando estatísticas para professor ID:', teacherId);
+    
+    const [studentRows] = await pool.query(`
+      SELECT COUNT(*) as total FROM users WHERE teacher_id = ? AND role = 'ALUNO'
+    `, [teacherId]);
+    
+    const dayOfWeek = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'][new Date().getDay()];
+    const dayMapping = {
+      'Domingo': 'DOMINGO',
+      'Segunda': 'SEGUNDA', 
+      'Terça': 'TERCA',
+      'Quarta': 'QUARTA',
+      'Quinta': 'QUINTA',
+      'Sexta': 'SEXTA',
+      'Sábado': 'SABADO'
+    };
+    const dayEnum = dayMapping[dayOfWeek];
+    
+    const [classRows] = await pool.query(`
+      SELECT COUNT(*) as total FROM schedules 
+      WHERE teacher_id = ? AND day_of_week = ?
+    `, [teacherId, dayEnum]);
+    
+    const [taskRows] = await pool.query(`
+      SELECT COUNT(*) as total FROM tasks WHERE creator_id = ?
+    `, [teacherId]);
+    
+    const students = parseInt(studentRows[0]?.total) || 0;
+    const classesToday = parseInt(classRows[0]?.total) || 0;
+    const tasks = parseInt(taskRows[0]?.total) || 0;
+    
+    console.log('[STATS] Resultado professor:', { students, classesToday, tasks, dayEnum });
+    
+    res.json({
+      students: students,
+      classesToday: classesToday,
+      tasks: tasks
+    });
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do professor:', error);
+    res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};

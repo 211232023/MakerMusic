@@ -34,9 +34,15 @@ export default function TeacherScreen() {
   const fetchStats = React.useCallback(async () => {
     if (token) {
       try {
+        console.log('[FRONTEND] Buscando estatísticas do professor...');
         const data = await getTeacherStats(token);
-        if (data && !data.message) {
-          setStats(data);
+        console.log('[FRONTEND] Dados recebidos:', data);
+        if (data && typeof data === 'object' && !data.message) {
+          setStats({
+            students: Number(data.students) || 0,
+            classesToday: Number(data.classesToday) || 0,
+            tasks: Number(data.tasks) || 0
+          });
         }
       } catch (error) {
         console.error("Erro ao buscar estatísticas:", error);
