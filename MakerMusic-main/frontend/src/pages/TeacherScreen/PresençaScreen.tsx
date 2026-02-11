@@ -1,9 +1,10 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator, SafeAreaView, StatusBar, Platform, ScrollView } from 'react-native';
 import { useUser } from '../src/UserContext';
 import { getSchedulesForTeacherByDay, markAttendance } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function PresencaScreen() {
   const navigation = useNavigation();
@@ -42,14 +43,13 @@ export default function PresencaScreen() {
       const attendanceData = {
         scheduleId,
         studentId,
-        status, // 'PRESENTE', 'AUSENTE', 'JUSTIFICADO'
-        classDate: new Date().toISOString().split('T')[0] // Corrigido para classDate conforme backend
+        status,
+        classDate: new Date().toISOString().split('T')[0]
       };
       
       const response = await markAttendance(attendanceData, token);
       
       if (response.attendanceId || response.message?.includes('sucesso')) {
-        // Personalização das mensagens e cores conforme solicitado
         if (status === 'PRESENTE') {
           showToast("Presença atribuída", 'success');
         } else if (status === 'AUSENTE') {
@@ -58,7 +58,6 @@ export default function PresencaScreen() {
           showToast("Ausência Justificada", 'warning');
         }
         
-        // Atualiza o estado local para refletir a mudança visualmente
         setSchedules(prev => prev.map(item => 
           item.id === scheduleId ? { ...item, attendance_status: status } : item
         ));
@@ -72,239 +71,389 @@ export default function PresencaScreen() {
     }
   };
 
+  const getDayLabel = (day: string) => {
+    const labels: any = {
+      'SEGUNDA': 'SEG',
+      'TERCA': 'TER',
+      'QUARTA': 'QUA',
+      'QUINTA': 'QUI',
+      'SEXTA': 'SEX',
+      'SABADO': 'SÁB',
+      'DOMINGO': 'DOM'
+    };
+    return labels[day] || day;
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      <Text style={styles.title}>Lista de Presença</Text>
       
-      <View style={styles.daySelectorContainer}>
-        <FlatList
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          data={['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO']}
-          keyExtractor={item => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={[styles.dayButton, selectedDay === item && styles.selectedDayButton]} 
-              onPress={() => setSelectedDay(item)}
-            >
-              <Text style={[styles.dayButtonText, selectedDay === item && styles.selectedDayButtonText]}>
-                {item.substring(0,3)}
-              </Text>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.daySelectorContent}
-        />
-      </View>
-
-      {isLoading ? (
-        <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#d4af37" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#f6e27f" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Ionicons name="checkmark-done-outline" size={32} color="#f6e27f" />
+            <Text style={styles.title}>Lista de Presença</Text>
+          </View>
         </View>
-      ) : (
-        <FlatList
-          data={schedules}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <View style={styles.scheduleItem}>
-              <View style={styles.studentInfo}>
-                <Text style={styles.studentName}>{item.student_name}</Text>
-                <Text style={styles.timeText}>{item.start_time.substring(0,5)} - {item.end_time.substring(0,5)}</Text>
-              </View>
-              
-              <View style={styles.attendanceButtons}>
-                <TouchableOpacity 
-                  disabled={markingId === item.id}
-                  style={[
-                    styles.statusButton, 
-                    item.attendance_status === 'PRESENTE' && styles.presente,
-                    { opacity: markingId === item.id ? 0.5 : 1 }
-                  ]} 
-                  onPress={() => handleMarkAttendance(item.id, item.student_id, 'PRESENTE')}
-                >
-                  <Text style={styles.statusButtonText}>P</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  disabled={markingId === item.id}
-                  style={[
-                    styles.statusButton, 
-                    item.attendance_status === 'AUSENTE' && styles.ausente,
-                    { opacity: markingId === item.id ? 0.5 : 1 }
-                  ]} 
-                  onPress={() => handleMarkAttendance(item.id, item.student_id, 'AUSENTE')}
-                >
-                  <Text style={styles.statusButtonText}>F</Text>
-                </TouchableOpacity>
 
-                <TouchableOpacity 
-                  disabled={markingId === item.id}
-                  style={[
-                    styles.statusButton, 
-                    item.attendance_status === 'JUSTIFICADO' && styles.justificado,
-                    { opacity: markingId === item.id ? 0.5 : 1 }
-                  ]} 
-                  onPress={() => handleMarkAttendance(item.id, item.student_id, 'JUSTIFICADO')}
-                >
-                  <Text style={styles.statusButtonText}>J</Text>
-                </TouchableOpacity>
+        <View style={styles.daySelectorContainer}>
+          <ScrollView 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.daySelectorContent}
+          >
+            {['SEGUNDA', 'TERCA', 'QUARTA', 'QUINTA', 'SEXTA', 'SABADO', 'DOMINGO'].map((day) => (
+              <TouchableOpacity 
+                key={day}
+                style={[styles.dayButton, selectedDay === day && styles.selectedDayButton]} 
+                onPress={() => setSelectedDay(day)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.dayButtonText, selectedDay === day && styles.selectedDayButtonText]}>
+                  {getDayLabel(day)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {isLoading ? (
+          <View style={styles.centerContainer}>
+            <ActivityIndicator size="large" color="#f6e27f" />
+            <Text style={styles.loadingText}>Carregando horários...</Text>
+          </View>
+        ) : (
+          <ScrollView 
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={Platform.OS === 'web'}
+          >
+            {schedules.length === 0 ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="calendar-outline" size={80} color="#666" />
+                <Text style={styles.emptyText}>Nenhuma aula agendada</Text>
+                <Text style={styles.emptySubtext}>Não há horários para {getDayLabel(selectedDay)}</Text>
               </View>
-            </View>
-          )}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>Nenhuma aula agendada para este dia.</Text>
-            </View>
-          }
-        />
-      )}
-      
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
+            ) : (
+              <View style={styles.schedulesContainer}>
+                {schedules.map((item) => (
+                  <View key={item.id.toString()} style={styles.scheduleCard}>
+                    <View style={styles.scheduleHeader}>
+                      <View style={styles.studentInfo}>
+                        <View style={styles.avatarCircle}>
+                          <Text style={styles.avatarText}>{item.student_name.charAt(0).toUpperCase()}</Text>
+                        </View>
+                        <View style={styles.studentDetails}>
+                          <Text style={styles.studentName}>{item.student_name}</Text>
+                          <View style={styles.timeContainer}>
+                            <Ionicons name="time-outline" size={16} color="#aaa" />
+                            <Text style={styles.timeText}>
+                              {item.start_time.substring(0,5)} - {item.end_time.substring(0,5)}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+
+                    <View style={styles.divider} />
+
+                    <View style={styles.attendanceSection}>
+                      <Text style={styles.attendanceLabel}>Marcar presença:</Text>
+                      <View style={styles.attendanceButtons}>
+                        <TouchableOpacity 
+                          disabled={markingId === item.id}
+                          style={[
+                            styles.statusButton, 
+                            styles.presenteButton,
+                            item.attendance_status === 'PRESENTE' && styles.presenteActive,
+                            { opacity: markingId === item.id ? 0.5 : 1 }
+                          ]} 
+                          onPress={() => handleMarkAttendance(item.id, item.student_id, 'PRESENTE')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons 
+                            name={item.attendance_status === 'PRESENTE' ? "checkmark-circle" : "checkmark-circle-outline"} 
+                            size={24} 
+                            color={item.attendance_status === 'PRESENTE' ? "#fff" : "#81c784"} 
+                          />
+                          <Text style={[
+                            styles.statusButtonText,
+                            item.attendance_status === 'PRESENTE' && styles.statusButtonTextActive
+                          ]}>Presente</Text>
+                        </TouchableOpacity>
+                        
+                        <TouchableOpacity 
+                          disabled={markingId === item.id}
+                          style={[
+                            styles.statusButton, 
+                            styles.ausenteButton,
+                            item.attendance_status === 'AUSENTE' && styles.ausenteActive,
+                            { opacity: markingId === item.id ? 0.5 : 1 }
+                          ]} 
+                          onPress={() => handleMarkAttendance(item.id, item.student_id, 'AUSENTE')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons 
+                            name={item.attendance_status === 'AUSENTE' ? "close-circle" : "close-circle-outline"} 
+                            size={24} 
+                            color={item.attendance_status === 'AUSENTE' ? "#fff" : "#e57373"} 
+                          />
+                          <Text style={[
+                            styles.statusButtonText,
+                            item.attendance_status === 'AUSENTE' && styles.statusButtonTextActive
+                          ]}>Falta</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity 
+                          disabled={markingId === item.id}
+                          style={[
+                            styles.statusButton, 
+                            styles.justificadoButton,
+                            item.attendance_status === 'JUSTIFICADO' && styles.justificadoActive,
+                            { opacity: markingId === item.id ? 0.5 : 1 }
+                          ]} 
+                          onPress={() => handleMarkAttendance(item.id, item.student_id, 'JUSTIFICADO')}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons 
+                            name={item.attendance_status === 'JUSTIFICADO' ? "alert-circle" : "alert-circle-outline"} 
+                            size={24} 
+                            color={item.attendance_status === 'JUSTIFICADO' ? "#fff" : "#ffb74d"} 
+                          />
+                          <Text style={[
+                            styles.statusButtonText,
+                            item.attendance_status === 'JUSTIFICADO' && styles.statusButtonTextActive
+                          ]}>Justificado</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </ScrollView>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#1c1b1f',
+  },
   container: { 
     flex: 1, 
-    backgroundColor: '#1c1b1f', 
+    backgroundColor: '#1c1b1f',
   },
-  centerContainer: {
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 15,
+  },
+  headerContent: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center'
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: { 
-    fontSize: 28, 
+    fontSize: 24, 
     fontWeight: 'bold', 
-    color: '#f6e27f', 
-    marginBottom: 20, 
-    marginTop: 40, 
-    textAlign: 'center' 
+    color: '#f6e27f',
   },
   daySelectorContainer: {
-    height: 60,
-    marginBottom: 20,
-    width: '100%',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
   daySelectorContent: {
-    paddingHorizontal: 15,
-    alignItems: 'center',
-    flexGrow: 1,
-    justifyContent: 'center' // Centraliza os itens horizontalmente
+    paddingHorizontal: 20,
+    gap: 10,
   },
   dayButton: { 
     paddingVertical: 10,
-    paddingHorizontal: 16, 
+    paddingHorizontal: 18, 
     borderRadius: 20, 
-    backgroundColor: '#333',
-    marginHorizontal: 5,
+    backgroundColor: '#2a292e',
     borderWidth: 1,
     borderColor: '#444',
-    minWidth: 60,
-    alignItems: 'center'
+    minWidth: 65,
+    alignItems: 'center',
   },
   selectedDayButton: { 
-    backgroundColor: '#d4af37',
-    borderColor: '#f6e27f'
+    backgroundColor: '#f6e27f',
+    borderColor: '#f6e27f',
   },
   dayButtonText: { 
     color: '#aaa', 
     fontWeight: 'bold',
-    fontSize: 14
+    fontSize: 14,
   },
   selectedDayButtonText: {
-    color: '#1c1b1f'
+    color: '#1c1b1f',
   },
-  listContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 100
-  },
-  scheduleItem: { 
-    backgroundColor: '#2a292e', 
-    padding: 18, 
-    borderRadius: 12, 
-    marginBottom: 12, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: 15,
+  },
+  loadingText: {
+    color: '#aaa',
+    fontSize: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  schedulesContainer: {
     width: '100%',
     maxWidth: 600,
     alignSelf: 'center',
+    gap: 15,
+  },
+  scheduleCard: { 
+    backgroundColor: '#2a292e', 
+    padding: 20, 
+    borderRadius: 15, 
     borderWidth: 1,
-    borderColor: '#333'
+    borderColor: '#333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  scheduleHeader: {
+    marginBottom: 15,
   },
   studentInfo: {
-    flex: 1
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  avatarCircle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#f6e27f',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: {
+    color: '#1c1b1f',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
+  studentDetails: {
+    flex: 1,
   },
   studentName: { 
     color: '#fff', 
-    fontSize: 17, 
-    fontWeight: 'bold'
+    fontSize: 18, 
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  timeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   timeText: { 
     color: '#aaa', 
     fontSize: 14,
-    marginTop: 4
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#444',
+    marginBottom: 15,
+  },
+  attendanceSection: {
+    gap: 12,
+  },
+  attendanceLabel: {
+    color: '#f6e27f',
+    fontSize: 14,
+    fontWeight: '600',
   },
   attendanceButtons: { 
     flexDirection: 'row', 
-    alignItems: 'center'
+    gap: 10,
+    flexWrap: 'wrap',
   },
   statusButton: { 
-    width: 36, 
-    height: 36, 
-    borderRadius: 18, 
-    justifyContent: 'center', 
-    alignItems: 'center', 
-    marginLeft: 8, 
-    backgroundColor: '#444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#555'
+    gap: 6,
+    flex: 1,
+    minWidth: 110,
   },
-  presente: { 
-    backgroundColor: '#2e7d32',
-    borderColor: '#4CAF50'
+  presenteButton: {
+    backgroundColor: '#81c78420',
+    borderColor: '#81c784',
   },
-  ausente: { 
-    backgroundColor: '#c62828',
-    borderColor: '#f44336'
+  presenteActive: {
+    backgroundColor: '#81c784',
+    borderColor: '#81c784',
   },
-  justificado: {
-    backgroundColor: '#f57c00',
-    borderColor: '#ff9800'
+  ausenteButton: {
+    backgroundColor: '#e5737320',
+    borderColor: '#e57373',
+  },
+  ausenteActive: {
+    backgroundColor: '#e57373',
+    borderColor: '#e57373',
+  },
+  justificadoButton: {
+    backgroundColor: '#ffb74d20',
+    borderColor: '#ffb74d',
+  },
+  justificadoActive: {
+    backgroundColor: '#ffb74d',
+    borderColor: '#ffb74d',
   },
   statusButtonText: { 
-    color: '#fff', 
-    fontWeight: 'bold',
-    fontSize: 16
+    color: '#aaa', 
+    fontWeight: '600',
+    fontSize: 13,
   },
-  emptyContainer: {
-    marginTop: 50,
-    alignItems: 'center'
+  statusButtonTextActive: {
+    color: '#fff',
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
   },
   emptyText: {
     color: '#aaa',
-    fontStyle: 'italic',
-    fontSize: 16
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 20,
   },
-  backButton: { 
-    position: 'absolute', 
-    bottom: 40, 
-    alignSelf: 'center',
-    backgroundColor: 'rgba(28, 27, 31, 0.9)',
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#d4af37'
+  emptySubtext: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 8,
   },
-  backButtonText: { 
-    color: '#d4af37', 
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  }
 });

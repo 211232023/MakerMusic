@@ -1,8 +1,12 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, SafeAreaView, StatusBar } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, SafeAreaView, StatusBar, ScrollView, Platform, Dimensions } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getStudentPerformance } from '../../services/api';
+import { Ionicons } from '@expo/vector-icons';
+
+const { width } = Dimensions.get('window');
+const isLargeScreen = width > 768;
 
 export default function StudentPerformanceScreen() {
   const navigation = useNavigation();
@@ -30,7 +34,7 @@ export default function StudentPerformanceScreen() {
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { justifyContent: 'center' }]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#d4af37" />
       </View>
     );
@@ -39,49 +43,92 @@ export default function StudentPerformanceScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>Desempenho do Aluno</Text>
-        <Text style={styles.studentNameHeader}>{studentName}</Text>
-        
-        <View style={styles.statsContainer}>
-          <View style={styles.statBox}>
+      
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backIconButton}>
+          <Ionicons name="chevron-back" size={28} color="#d4af37" />
+        </TouchableOpacity>
+        <View style={styles.headerTextContainer}>
+          <Text style={styles.headerTitle}>Desempenho</Text>
+          <Text style={styles.headerSubtitle}>{studentName}</Text>
+        </View>
+        <View style={{ width: 40 }} />
+      </View>
+      
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={Platform.OS === 'web'}
+      >
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, styles.totalCard]}>
+            <View style={styles.statIcon}>
+              <Ionicons name="list" size={24} color="#64b5f6" />
+            </View>
             <Text style={styles.statValue}>{performance?.total || 0}</Text>
-            <Text style={styles.statLabel}>Total</Text>
+            <Text style={styles.statLabel}>Total de Tarefas</Text>
           </View>
-          <View style={styles.statBox}>
+          
+          <View style={[styles.statCard, styles.completedCard]}>
+            <View style={styles.statIcon}>
+              <Ionicons name="checkmark-done" size={24} color="#81c784" />
+            </View>
             <Text style={styles.statValue}>{performance?.completed || 0}</Text>
             <Text style={styles.statLabel}>Concluídas</Text>
           </View>
-          <View style={styles.statBox}>
+          
+          <View style={[styles.statCard, styles.performanceCard]}>
+            <View style={styles.statIcon}>
+              <Ionicons name="trophy" size={24} color="#ffd54f" />
+            </View>
             <Text style={styles.statValue}>{completionRate}%</Text>
-            <Text style={styles.statLabel}>Desempenho</Text>
+            <Text style={styles.statLabel}>Taxa de Conclusão</Text>
           </View>
         </View>
 
-        <Text style={styles.subtitle}>Histórico de Atividades</Text>
-        <FlatList
-          data={performance?.tasks}
-          keyExtractor={(item, index) => index.toString()}
-          contentContainerStyle={{ paddingBottom: 100 }}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={[styles.taskItem, item.completed ? styles.taskCompleted : styles.taskPending]}>
-              <View style={styles.taskInfo}>
-                <Text style={styles.taskTitle}>{item.title}</Text>
-                <Text style={styles.taskStatusText}>{item.completed ? 'Concluída' : 'Pendente'}</Text>
+        <View style={styles.progressSection}>
+          <Text style={styles.sectionTitle}>Progresso Geral</Text>
+          <View style={styles.progressBarContainer}>
+            <View style={[styles.progressBarFill, { width: `${completionRate}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{performance?.completed || 0} de {performance?.total || 0} tarefas completas</Text>
+        </View>
+
+        <View style={styles.tasksSection}>
+          <Text style={styles.sectionTitle}>Histórico de Atividades</Text>
+          {performance?.tasks && performance.tasks.length > 0 ? (
+            performance.tasks.map((item: any, index: number) => (
+              <View key={index} style={[styles.taskCard, item.completed ? styles.taskCompletedBorder : styles.taskPendingBorder]}>
+                <View style={styles.taskHeader}>
+                  <View style={[styles.taskStatusIcon, { backgroundColor: item.completed ? '#4CAF50' : '#FF9800' }]}>
+                    <Ionicons name={item.completed ? "checkmark" : "time"} size={18} color="#fff" />
+                  </View>
+                  <Text style={styles.taskTitle}>{item.title}</Text>
+                </View>
+                <Text style={styles.taskDescription}>{item.description || 'Sem descrição'}</Text>
+                <View style={styles.taskFooter}>
+                  <View style={[styles.statusChip, { backgroundColor: item.completed ? 'rgba(76, 175, 80, 0.15)' : 'rgba(255, 152, 0, 0.15)' }]}>
+                    <Text style={[styles.statusChipText, { color: item.completed ? '#81c784' : '#ffb74d' }]}>
+                      {item.completed ? '✓ Concluída' : '○ Pendente'}
+                    </Text>
+                  </View>
+                  {item.completed && item.completed_at && (
+                    <Text style={styles.completedDate}>
+                      {new Date(item.completed_at).toLocaleDateString('pt-BR')}
+                    </Text>
+                  )}
+                </View>
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: item.completed ? '#2e7d32' : '#ef6c00' }]}>
-                <Text style={styles.statusBadgeText}>{item.completed ? 'OK' : '...'}</Text>
-              </View>
+            ))
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="document-text-outline" size={60} color="#444" />
+              <Text style={styles.emptyText}>Nenhuma atividade registrada ainda</Text>
+              <Text style={styles.emptySubtext}>As tarefas do aluno aparecerão aqui</Text>
             </View>
           )}
-          ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma atividade registrada.</Text>}
-        />
-      </View>
-      
-      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-        <Text style={styles.backButtonText}>Voltar</Text>
-      </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -91,121 +138,194 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#1c1b1f', 
   },
-  contentContainer: { 
-    flex: 1,
-    width: '100%', 
-    maxWidth: 600, 
-    alignSelf: 'center', 
-    paddingHorizontal: 20,
-  },
-  title: { 
-    fontSize: 28, 
-    fontWeight: 'bold', 
-    color: '#f6e27f', 
-    marginTop: 40, 
-    textAlign: 'center' 
-  },
-  studentNameHeader: {
-    fontSize: 18,
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 30,
-    opacity: 0.8
-  },
-  subtitle: { 
-    fontSize: 20, 
-    fontWeight: 'bold', 
-    color: '#f6e27f', 
-    marginBottom: 15 
-  },
-  statsContainer: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginBottom: 30, 
-    width: '100%' 
-  },
-  statBox: { 
-    backgroundColor: '#333', 
-    padding: 15, 
-    borderRadius: 12, 
-    width: '31%', 
+  header: {
+    flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#444'
+    paddingHorizontal: 10,
+    paddingVertical: 15,
+    backgroundColor: '#2a292e',
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
   },
-  statValue: { 
-    fontSize: 22, 
-    fontWeight: 'bold', 
-    color: '#d4af37' 
+  backIconButton: {
+    padding: 5,
   },
-  statLabel: { 
-    fontSize: 12, 
+  headerTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#f6e27f',
+  },
+  headerSubtitle: {
+    fontSize: 14,
     color: '#aaa',
-    marginTop: 4
+    marginTop: 2,
   },
-  taskItem: { 
-    backgroundColor: '#2a292e', 
-    padding: 18, 
-    borderRadius: 12, 
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: { 
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+  },
+  statsRow: {
+    flexDirection: isLargeScreen ? 'row' : 'column',
+    justifyContent: 'space-between',
+    marginBottom: 30,
+    gap: 15,
+  },
+  statCard: {
+    backgroundColor: '#2a292e',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    flex: isLargeScreen ? 1 : undefined,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  totalCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#64b5f6',
+  },
+  completedCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#81c784',
+  },
+  performanceCard: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#ffd54f',
+  },
+  statIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 4,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#aaa',
+    textAlign: 'center',
+  },
+  progressSection: {
+    backgroundColor: '#2a292e',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 25,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#f6e27f',
     marginBottom: 12,
+  },
+  progressBarContainer: {
+    height: 8,
+    backgroundColor: '#1c1b1f',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 6,
+  },
+  progressText: {
+    color: '#aaa',
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  tasksSection: {
+    marginBottom: 20,
+  },
+  taskCard: {
+    backgroundColor: '#2a292e',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  taskCompletedBorder: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#4CAF50',
+  },
+  taskPendingBorder: {
+    borderLeftWidth: 4,
+    borderLeftColor: '#FF9800',
+  },
+  taskHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  taskStatusIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  taskTitle: {
+    flex: 1,
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: 'bold',
+  },
+  taskDescription: {
+    color: '#aaa',
+    fontSize: 13,
+    marginBottom: 8,
+    lineHeight: 18,
+  },
+  taskFooter: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderWidth: 1,
-    borderColor: '#333'
   },
-  taskCompleted: { 
-    borderLeftWidth: 5, 
-    borderLeftColor: '#4CAF50' 
-  },
-  taskPending: { 
-    borderLeftWidth: 5, 
-    borderLeftColor: '#FF9800' 
-  },
-  taskInfo: {
-    flex: 1
-  },
-  taskTitle: { 
-    color: '#fff', 
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  },
-  taskStatusText: { 
-    color: '#aaa', 
-    fontSize: 13,
-    marginTop: 4
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  statusChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 8,
-    marginLeft: 10
   },
-  statusBadgeText: {
-    color: '#fff',
+  statusChipText: {
     fontSize: 12,
-    fontWeight: 'bold'
+    fontWeight: '600',
+  },
+  completedDate: {
+    color: '#666',
+    fontSize: 12,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
   },
   emptyText: {
     color: '#aaa',
-    textAlign: 'center',
-    marginTop: 40,
-    fontStyle: 'italic'
+    fontSize: 16,
+    marginTop: 15,
+    fontWeight: '600',
   },
-  backButton: { 
-    position: 'absolute', 
-    bottom: 40, 
-    alignSelf: 'center',
-    backgroundColor: 'rgba(28, 27, 31, 0.9)',
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    borderRadius: 25,
-    borderWidth: 1,
-    borderColor: '#d4af37'
+  emptySubtext: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 5,
   },
-  backButtonText: { 
-    color: '#d4af37', 
-    fontSize: 16, 
-    fontWeight: 'bold' 
-  }
 });

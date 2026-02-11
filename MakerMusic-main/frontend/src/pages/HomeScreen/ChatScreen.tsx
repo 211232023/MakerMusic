@@ -202,7 +202,7 @@ export default function ChatScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <ActivityIndicator size="large" color="#d4af37" />
+        <ActivityIndicator size="large" color="#f6e27f" />
       </SafeAreaView>
     );
   }
@@ -214,7 +214,7 @@ export default function ChatScreen() {
       <View style={styles.mainWrapper}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Ionicons name="chevron-back" size={28} color="#d4af37" />
+            <Ionicons name="chevron-back" size={28} color="#f6e27f" />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
             <View style={styles.avatarPlaceholder}>
@@ -287,7 +287,7 @@ export default function ChatScreen() {
                         onPress={() => Linking.openURL(`${BASE_URL_FILES}${item.file_url}`)}
                       >
                         <View style={[styles.fileIconCircle, { backgroundColor: item.sender_id === user?.id ? 'rgba(0,0,0,0.1)' : 'rgba(212,175,55,0.2)' }]}>
-                          <Ionicons name="document-text" size={22} color={item.sender_id === user?.id ? "#1c1b1f" : "#d4af37"} />
+                          <Ionicons name="document-text" size={22} color={item.sender_id === user?.id ? "#1c1b1f" : "#f6e27f"} />
                         </View>
                         <Text style={[styles.fileName, { color: item.sender_id === user?.id ? "#1c1b1f" : "#fff" }]} numberOfLines={1}>
                           {item.file_name || 'Arquivo'}
@@ -312,8 +312,17 @@ export default function ChatScreen() {
                   </View>
                 );
               }}
-              onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-              onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+              onContentSizeChange={() => {
+                // Scroll automático apenas quando nova mensagem é adicionada
+                if (messages.length > 0) {
+                  setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+                }
+              }}
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10
+              }}
+              inverted={false}
             />
           </View>
 
@@ -324,7 +333,7 @@ export default function ChatScreen() {
                   {pendingFile.chatType === 'IMAGE' ? (
                     <Image source={{ uri: pendingFile.uri }} style={styles.previewThumb} />
                   ) : (
-                    <Ionicons name={pendingFile.chatType === 'AUDIO' ? "mic" : (pendingFile.chatType === 'VIDEO' ? "videocam" : "document")} size={24} color="#d4af37" />
+                    <Ionicons name={pendingFile.chatType === 'AUDIO' ? "mic" : (pendingFile.chatType === 'VIDEO' ? "videocam" : "document")} size={24} color="#f6e27f" />
                   )}
                 </View>
                 <View style={styles.previewInfo}>
@@ -425,7 +434,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#d4af37',
+    backgroundColor: '#f6e27f',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -446,10 +455,16 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flex: 1,
     backgroundColor: '#16151a',
+    overflow: 'hidden',
   },
   messageList: {
     flex: 1,
     paddingHorizontal: 15,
+    ...Platform.select({
+      web: {
+        overflowY: 'auto' as any,
+      }
+    }),
   },
   messageBubble: {
     maxWidth: isLargeScreen ? '60%' : '85%',
@@ -461,7 +476,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.1)',
   },
   myMessage: {
-    backgroundColor: '#d4af37',
+    backgroundColor: '#f6e27f',
     alignSelf: 'flex-end',
     borderTopRightRadius: 2,
   },
@@ -554,7 +569,7 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   previewLabel: {
-    color: '#d4af37',
+    color: '#f6e27f',
     fontSize: 11,
     fontWeight: 'bold',
     textTransform: 'uppercase',
@@ -609,7 +624,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#d4af37',
+    backgroundColor: '#f6e27f',
     justifyContent: 'center',
     alignItems: 'center',
   },

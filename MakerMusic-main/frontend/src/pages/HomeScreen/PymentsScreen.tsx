@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { 
   View, Text, StyleSheet, FlatList, TouchableOpacity, 
-  ActivityIndicator, SafeAreaView, Modal, Image, Alert, ScrollView, Dimensions
+  ActivityIndicator, SafeAreaView, Modal, Image, Alert, ScrollView, Dimensions, Platform
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
@@ -65,18 +65,14 @@ export default function PymentsScreen() {
     
     setIsLoading(true);
     try {
-      // Chamada para atualizar o status no banco de dados
-      // Usamos await para garantir que a operação termine antes de prosseguir
       await updatePaymentStatus(selectedPayment.id, 'PAGO', token);
       
-      // Atualiza o estado local IMEDIATAMENTE para garantir a mudança visual
       setPayments(prevPayments => 
         prevPayments.map(p => 
           p.id === selectedPayment.id ? { ...p, status: 'PAGO' } : p
         )
       );
 
-      // Fecha os modais antes do alerta para evitar travamentos visuais
       closeAllModals();
       
       Alert.alert(
@@ -87,7 +83,6 @@ export default function PymentsScreen() {
     } catch (error) {
       console.error("Erro ao processar pagamento:", error);
       
-      // Mesmo com erro na API (como CORB ou rede), forçamos a atualização visual conforme solicitado
       setPayments(prevPayments => 
         prevPayments.map(p => 
           p.id === selectedPayment.id ? { ...p, status: 'PAGO' } : p
@@ -126,39 +121,99 @@ export default function PymentsScreen() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status?.toUpperCase()) {
+      case 'PAGO': return 'checkmark-circle';
+      case 'PENDENTE': return 'time-outline';
+      case 'ATRASADO': return 'alert-circle';
+      default: return 'help-circle';
+    }
+  };
+
+  if (isLoading && !payments.length) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, styles.centered]}>
+          <ActivityIndicator size="large" color="#f6e27f" />
+          <Text style={styles.loadingText}>Carregando informações financeiras...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Text style={styles.title}>Meu Financeiro</Text>
-        
-        {isLoading && !payments.length ? (
-          <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 50 }} />
-        ) : (
-          <FlatList
-            data={payments}
-            keyExtractor={(item) => item.id.toString()}
-            style={{ width: '100%' }}
-            contentContainerStyle={{ paddingBottom: 20 }}
-            renderItem={({ item }) => (
-              <View style={styles.paymentItem}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.description}>{item.description || 'Mensalidade'}</Text>
-                  <Text style={styles.amount}>R$ {parseFloat(String(item.amount)).toFixed(2)}</Text>
-                  <Text style={styles.date}>Vencimento: {formatDate(item.payment_date)}</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end' }}>
-                  <Text style={[styles.status, getStatusStyle(item.status)]}>{item.status}</Text>
+        <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="#f6e27f" />
+          </TouchableOpacity>
+          <View style={styles.headerContent}>
+            <Ionicons name="wallet-outline" size={32} color="#f6e27f" />
+            <Text style={styles.title}>Meu Financeiro</Text>
+          </View>
+        </View>
+
+        <ScrollView 
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={Platform.OS === 'web'}
+        >
+          {payments.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="checkmark-done-circle-outline" size={80} color="#666" />
+              <Text style={styles.emptyText}>Nenhuma cobrança encontrada</Text>
+              <Text style={styles.emptySubtext}>Você está em dia com seus pagamentos!</Text>
+            </View>
+          ) : (
+            <View style={styles.paymentsContainer}>
+              {payments.map((item) => (
+                <View key={item.id.toString()} style={styles.paymentCard}>
+                  <View style={styles.paymentHeader}>
+                    <View style={styles.paymentInfo}>
+                      <Text style={styles.description}>{item.description || 'Mensalidade'}</Text>
+                      <Text style={styles.amount}>R$ {parseFloat(String(item.amount)).toFixed(2)}</Text>
+                    </View>
+                    <View style={[
+                      styles.statusBadge, 
+                      getStatusStyle(item.status)
+                    ]}>
+                      <Ionicons 
+                        name={getStatusIcon(item.status)} 
+                        size={18} 
+                        color={
+                          item.status === 'PAGO' ? '#81c784' : 
+                          item.status === 'ATRASADO' ? '#e57373' : '#ffb74d'
+                        } 
+                      />
+                      <Text style={[styles.statusText, getStatusStyle(item.status)]}>
+                        {item.status}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.dateContainer}>
+                    <Ionicons name="calendar-outline" size={16} color="#aaa" />
+                    <Text style={styles.date}>Vencimento: {formatDate(item.payment_date)}</Text>
+                  </View>
+
                   {item.status !== 'PAGO' && (
-                    <TouchableOpacity style={styles.payButton} onPress={() => handlePayPress(item)}>
-                      <Text style={styles.payButtonText}>Pagar</Text>
+                    <TouchableOpacity 
+                      style={styles.payButton} 
+                      onPress={() => handlePayPress(item)}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="card-outline" size={20} color="#1c1b1f" />
+                      <Text style={styles.payButtonText}>Pagar Agora</Text>
                     </TouchableOpacity>
                   )}
                 </View>
-              </View>
-            )}
-            ListEmptyComponent={<Text style={styles.emptyText}>Nenhuma cobrança encontrada.</Text>}
-          />
-        )}
+              ))}
+            </View>
+          )}
+        </ScrollView>
 
         {/* Modal de Seleção de Método */}
         <Modal visible={paymentMethodModal} transparent animationType="fade">
@@ -166,16 +221,24 @@ export default function PymentsScreen() {
             <View style={styles.methodView}>
               <Text style={styles.modalTitle}>Escolha como pagar</Text>
               <TouchableOpacity style={styles.methodItem} onPress={() => selectMethod('PIX')}>
-                <Ionicons name="qr-code-outline" size={20} color="#d4af37" /><Text style={styles.methodLabel}>Pix</Text>
+                <Ionicons name="qr-code-outline" size={24} color="#f6e27f" />
+                <Text style={styles.methodLabel}>Pix</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.methodItem} onPress={() => selectMethod('CREDITO')}>
-                <Ionicons name="card-outline" size={20} color="#d4af37" /><Text style={styles.methodLabel}>Cartão de Crédito</Text>
+                <Ionicons name="card-outline" size={24} color="#f6e27f" />
+                <Text style={styles.methodLabel}>Cartão de Crédito</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.methodItem} onPress={() => selectMethod('DEBITO')}>
-                <Ionicons name="card-outline" size={20} color="#d4af37" /><Text style={styles.methodLabel}>Cartão de Débito</Text>
+                <Ionicons name="card-outline" size={24} color="#f6e27f" />
+                <Text style={styles.methodLabel}>Cartão de Débito</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.methodItem} onPress={() => selectMethod('BOLETO')}>
-                <Ionicons name="barcode-outline" size={20} color="#d4af37" /><Text style={styles.methodLabel}>Boleto Bancário</Text>
+                <Ionicons name="barcode-outline" size={24} color="#f6e27f" />
+                <Text style={styles.methodLabel}>Boleto Bancário</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" style={{ marginLeft: 'auto' }} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setPaymentMethodModal(false)}>
                 <Text style={styles.cancelText}>Cancelar</Text>
@@ -247,7 +310,7 @@ export default function PymentsScreen() {
         <Modal visible={modalCartao} transparent animationType="slide">
           <View style={styles.modalOverlay}>
             <View style={styles.cartaoView}>
-              <Ionicons name="card" size={40} color="#d4af37" />
+              <Ionicons name="card" size={50} color="#f6e27f" />
               <Text style={styles.modalTitle}>Cartão de {cartaoType === 'CREDITO' ? 'Crédito' : 'Débito'}</Text>
               <View style={styles.cardInput}><Text style={{color: '#aaa'}}>**** **** **** 4242</Text></View>
               <View style={{flexDirection: 'row', justifyContent: 'space-between', width: '100%'}}>
@@ -255,6 +318,7 @@ export default function PymentsScreen() {
                 <View style={[styles.cardInput, {width: '48%'}]}><Text style={{color: '#aaa'}}>***</Text></View>
               </View>
               <TouchableOpacity style={styles.confirmButton} onPress={processPayment}>
+                <Ionicons name="checkmark-circle-outline" size={22} color="#1c1b1f" />
                 <Text style={styles.confirmButtonText}>Pagar R$ {selectedPayment ? parseFloat(selectedPayment.amount).toFixed(2) : ''}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.closeButton} onPress={() => setModalCartao(false)}>
@@ -271,103 +335,171 @@ export default function PymentsScreen() {
               <Text style={styles.modalTitle}>Pagar com Pix</Text>
               <Image source={{ uri: 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=MakerMusicPix' }} style={styles.qrCode} />
               <Text style={styles.pixKey}>a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6</Text>
-              <TouchableOpacity style={styles.confirmButton} onPress={processPayment}><Text style={styles.confirmButtonText}>Já paguei</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.closeButton} onPress={() => setModalPix(false)}><Text style={styles.closeButtonText}>Fechar</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.confirmButton} onPress={processPayment}>
+                <Ionicons name="checkmark-circle-outline" size={22} color="#1c1b1f" />
+                <Text style={styles.confirmButtonText}>Já paguei</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.closeButton} onPress={() => setModalPix(false)}>
+                <Text style={styles.closeButtonText}>Fechar</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </Modal>
-
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Text style={styles.backButtonText}>Voltar ao Início</Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { 
-    flex: 1, 
-    backgroundColor: '#1c1b1f' 
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#1c1b1f',
   },
   container: { 
     flex: 1, 
-    padding: 20, 
-    alignItems: 'center' 
+    backgroundColor: '#1c1b1f',
+  },
+  centered: { 
+    justifyContent: 'center', 
+    alignItems: 'center',
+    padding: 20,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 20,
+    paddingTop: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  backButton: {
+    padding: 8,
+    marginRight: 15,
+  },
+  headerContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   title: { 
     fontSize: 24, 
     fontWeight: 'bold', 
-    color: '#f6e27f', 
-    marginBottom: 25, 
-    marginTop: 20 
+    color: '#f6e27f',
   },
-  paymentItem: { 
+  loadingText: {
+    color: '#aaa', 
+    marginTop: 15,
+    fontSize: 16,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    padding: 20,
+  },
+  paymentsContainer: {
     width: '100%',
-    backgroundColor: '#2a292e', 
-    padding: 15, 
-    borderRadius: 12, 
-    marginBottom: 12, 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    borderLeftWidth: 4, 
-    borderLeftColor: '#d4af37',
     maxWidth: 600,
-    alignSelf: 'center'
+    alignSelf: 'center',
+    gap: 15,
+  },
+  paymentCard: { 
+    backgroundColor: '#2a292e', 
+    padding: 20, 
+    borderRadius: 15, 
+    borderWidth: 1,
+    borderColor: '#333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  paymentHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  paymentInfo: {
+    flex: 1,
   },
   description: { 
     color: '#fff',
-    fontSize: 15, 
-    fontWeight: 'bold' 
+    fontSize: 16, 
+    fontWeight: 'bold',
+    marginBottom: 6,
   },
   amount: { 
     color: '#f6e27f', 
-    fontSize: 16, 
-    fontWeight: 'bold', 
-    marginVertical: 2 
+    fontSize: 22, 
+    fontWeight: 'bold',
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    gap: 6,
+  },
+  statusPaid: { 
+    backgroundColor: '#81c78420',
+  },
+  statusPending: {
+    backgroundColor: '#ffb74d20',
+  },
+  statusOverdue: { 
+    backgroundColor: '#e5737320',
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 15,
   },
   date: { 
     color: '#aaa', 
-    fontSize: 12 
-  },
-  status: { 
-    fontSize: 13, 
-    fontWeight: 'bold', 
-    marginBottom: 5 
-  },
-  statusPaid: { 
-    color: '#4CAF50' 
-  },
-  statusPending: {
-     color: '#FFC107' 
-    },
-  statusOverdue: { 
-    color: '#F44336' 
+    fontSize: 14,
   },
   payButton: { 
-    backgroundColor: '#d4af37', 
-    paddingVertical: 6, 
-    paddingHorizontal: 12, 
-    borderRadius: 6 
+    backgroundColor: '#f6e27f', 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14, 
+    borderRadius: 12,
+    gap: 8,
+    shadowColor: '#f6e27f',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   payButtonText: { 
     color: '#1c1b1f', 
-    fontWeight: 'bold', 
-    fontSize: 13 
+    fontWeight: 'bold',
+    fontSize: 16,
   },
-  emptyText: { 
-    color: '#aaa', 
-    marginTop: 50 
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
   },
-  backButton: { 
-    marginTop: 10, 
-    padding: 10 
+  emptyText: {
+    color: '#aaa',
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 20,
   },
-  backButtonText: { 
-    color: '#d4af37', 
-    fontSize: 14, 
-    fontWeight: 'bold' 
+  emptySubtext: {
+    color: '#666',
+    fontSize: 14,
+    marginTop: 8,
   },
   modalOverlay: { 
     flex: 1, 
@@ -377,32 +509,39 @@ const styles = StyleSheet.create({
   },
   methodView: { 
     width: '85%', 
-    maxWidth: 350, 
-    backgroundColor: '#2a2a2a', 
-    borderRadius: 15, 
-    padding: 20 
+    maxWidth: 400, 
+    backgroundColor: '#2a292e', 
+    borderRadius: 20, 
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
   },
   methodItem: { 
     flexDirection: 'row', 
     alignItems: 'center', 
-    backgroundColor: '#333', 
-    padding: 12, 
-    borderRadius: 10, 
-    marginBottom: 10 
+    backgroundColor: '#1c1b1f', 
+    padding: 16, 
+    borderRadius: 12, 
+    marginBottom: 12,
+    gap: 12,
   },
   methodLabel: { 
     color: '#fff', 
-    fontSize: 15, 
-    marginLeft: 12 
+    fontSize: 16,
+    fontWeight: '500',
   },
   cancelButton: { 
-    marginTop: 5, 
-    alignItems: 'center' 
+    marginTop: 8, 
+    alignItems: 'center',
+    padding: 10,
   },
   cancelText: { 
-    color: '#F44336', 
+    color: '#e57373', 
     fontWeight: 'bold', 
-    fontSize: 14 
+    fontSize: 15,
   },
   boletoScroll: { 
     flexGrow: 1, 
@@ -435,7 +574,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#000', 
     marginHorizontal: 8 
   },
-  bankCode: { fontSize: 16, 
+  bankCode: { 
+    fontSize: 16, 
     fontWeight: 'bold', 
     color: '#000' 
   },
@@ -478,73 +618,94 @@ const styles = StyleSheet.create({
   },
   cartaoView: { 
     width: '85%', 
-    maxWidth: 350, 
-    backgroundColor: '#2a2a2a', 
-    borderRadius: 15, 
-    padding: 20, 
-    alignItems: 'center' 
+    maxWidth: 400, 
+    backgroundColor: '#2a292e', 
+    borderRadius: 20, 
+    padding: 24, 
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
   },
   pixView: { 
     width: '85%', 
-    maxWidth: 350, 
-    backgroundColor: '#333', 
-    borderRadius: 15, 
-    padding: 20, 
-    alignItems: 'center' 
+    maxWidth: 400, 
+    backgroundColor: '#2a292e', 
+    borderRadius: 20, 
+    padding: 24, 
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 10,
   },
   modalTitle: { 
-    fontSize: 18, 
+    fontSize: 20, 
     fontWeight: 'bold', 
-    color: '#d4af37', 
-    marginBottom: 15, 
+    color: '#f6e27f', 
+    marginBottom: 20,
+    marginTop: 10,
     textAlign: 'center' 
   },
   cardInput: { 
-    backgroundColor: '#333', 
-    padding: 12, 
-    borderRadius: 8, 
+    backgroundColor: '#1c1b1f', 
+    padding: 14, 
+    borderRadius: 10, 
     width: '100%', 
-    marginBottom: 10, 
+    marginBottom: 12, 
     borderWidth: 1, 
     borderColor: '#444' 
   },
   confirmButton: { 
-    backgroundColor: '#d4af37', 
-    padding: 12, 
-    borderRadius: 8, 
+    backgroundColor: '#f6e27f', 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14, 
+    borderRadius: 12, 
     width: '100%', 
-    alignItems: 'center', 
-    marginTop: 15 
+    marginTop: 10,
+    gap: 8,
+    shadowColor: '#f6e27f',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   confirmButtonText: { 
     color: '#1c1b1f', 
     fontWeight: 'bold', 
-    fontSize: 15 
+    fontSize: 16,
   },
   closeButton: { 
-    marginTop: 10, 
-    padding: 5 
+    marginTop: 12, 
+    padding: 8,
   },
   closeButtonText: { 
     color: '#888', 
-    fontWeight: 'bold', 
-    fontSize: 13 
+    fontWeight: '600', 
+    fontSize: 14,
   },
   qrCode: { 
-    width: 150, 
-    height: 150, 
-    marginBottom: 15, 
+    width: 180, 
+    height: 180, 
+    marginBottom: 20, 
     backgroundColor: '#fff', 
-    borderRadius: 8 
+    borderRadius: 10,
+    padding: 10,
   },
   pixKey: { 
     color: '#fff', 
-    fontSize: 10, 
-    padding: 10, 
-    backgroundColor: '#222', 
-    borderRadius: 6, 
-    marginBottom: 15, 
+    fontSize: 11, 
+    padding: 12, 
+    backgroundColor: '#1c1b1f', 
+    borderRadius: 8, 
+    marginBottom: 20, 
     textAlign: 'center', 
-    width: '100%' 
+    width: '100%',
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
 });

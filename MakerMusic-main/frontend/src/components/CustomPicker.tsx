@@ -31,12 +31,12 @@ export default function CustomPicker({
           }}
           style={{
             width: '100%',
-            height: 60,
-            backgroundColor: '#333',
+            height: 50,
+            backgroundColor: 'transparent',
             color: '#fff',
             border: 'none',
-            borderRadius: 10,
-            padding: '0 15px',
+            borderRadius: 0,
+            padding: '0 10px',
             fontSize: 16,
             cursor: 'pointer',
             outline: 'none',
@@ -98,15 +98,13 @@ export default function CustomPicker({
 const styles = StyleSheet.create({
   webContainer: {
     width: '100%',
-    backgroundColor: '#333',
+    backgroundColor: 'transparent',
     borderRadius: 10,
-    marginBottom: 20,
   },
   mobileContainer: {
     width: '100%',
-    backgroundColor: '#333',
+    backgroundColor: 'transparent',
     borderRadius: 10,
-    marginBottom: 20,
     overflow: 'hidden',
   },
   androidContainer: {

@@ -436,3 +436,40 @@ export const registerUserByAdmin = async (userData, token) => {
     return { message: 'Não foi possível ligar ao servidor.' };
   }
 };
+
+// Funções para buscar estatísticas (Resumo Rápido)
+export const getStudentStats = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/users/student/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do aluno:', error);
+    return { tasks: 0, classes: 0, progress: 0 };
+  }
+};
+
+export const getTeacherStats = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/users/teacher/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do professor:', error);
+    return { students: 0, classesToday: 0, tasks: 0 };
+  }
+};
+
+export const getFinanceStats = async (token) => {
+  try {
+    const response = await fetch(`${BASE_URL}/finance/stats`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    return response.json();
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas financeiras:', error);
+    return { paid: 0, pending: 0, overdue: 0 };
+  }
+};
