@@ -312,15 +312,11 @@ export default function ChatScreen() {
                   </View>
                 );
               }}
-              onContentSizeChange={() => {
-                // Scroll automático apenas quando nova mensagem é adicionada
+              onContentSizeChange={() => {}}
+              onLayout={() => {
                 if (messages.length > 0) {
-                  setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+                  setTimeout(() => flatListRef.current?.scrollToEnd({ animated: false }), 100);
                 }
-              }}
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 10
               }}
               inverted={false}
             />

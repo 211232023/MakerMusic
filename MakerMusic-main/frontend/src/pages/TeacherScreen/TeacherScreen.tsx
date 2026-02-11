@@ -76,41 +76,57 @@ export default function TeacherScreen() {
           </View>
         </View>
 
-        <View style={styles.menuGrid}>
-          {menuItems.map((item, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.menuCard, isLargeScreen && styles.menuCardWeb]}
-              onPress={() => handleNavigate(item.route)}
-              activeOpacity={0.7}
-            >
-              <View style={[styles.iconCircle, { backgroundColor: `${item.color}20` }]}>
-                <Ionicons name={item.icon} size={32} color={item.color} />
-              </View>
-              <Text style={styles.menuLabel}>{item.label}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#666" />
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <View style={styles.statsSection}>
-          <Text style={styles.sectionTitle}>Estatísticas Rápidas</Text>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="stats-chart-outline" size={24} color="#f6e27f" />
+            <Text style={styles.sectionTitle}>Estatísticas Rápidas</Text>
+          </View>
           <View style={styles.statsGrid}>
-            <View style={styles.statCard}>
-              <Ionicons name="people" size={28} color="#64b5f6" />
+            <View style={[styles.statCard, { borderColor: '#64b5f6' }]}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(100, 181, 246, 0.2)' }]}>
+                <Ionicons name="people" size={28} color="#64b5f6" />
+              </View>
               <Text style={styles.statValue}>{stats.students}</Text>
               <Text style={styles.statLabel}>Alunos</Text>
             </View>
-            <View style={styles.statCard}>
-              <Ionicons name="calendar" size={28} color="#81c784" />
+            <View style={[styles.statCard, { borderColor: '#81c784' }]}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(129, 199, 132, 0.2)' }]}>
+                <Ionicons name="calendar" size={28} color="#81c784" />
+              </View>
               <Text style={styles.statValue}>{stats.classesToday}</Text>
               <Text style={styles.statLabel}>Aulas Hoje</Text>
             </View>
-            <View style={styles.statCard}>
-              <Ionicons name="clipboard" size={28} color="#ffb74d" />
+            <View style={[styles.statCard, { borderColor: '#ffb74d' }]}>
+              <View style={[styles.statIcon, { backgroundColor: 'rgba(255, 183, 77, 0.2)' }]}>
+                <Ionicons name="clipboard" size={28} color="#ffb74d" />
+              </View>
               <Text style={styles.statValue}>{stats.tasks}</Text>
               <Text style={styles.statLabel}>Tarefas</Text>
             </View>
+          </View>
+        </View>
+
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="apps-outline" size={24} color="#f6e27f" />
+            <Text style={styles.sectionTitle}>Menu Principal</Text>
+          </View>
+
+          <View style={styles.menuGrid}>
+            {menuItems.map((item, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[styles.menuCard, isLargeScreen && styles.menuCardWeb]}
+                onPress={() => handleNavigate(item.route)}
+                activeOpacity={0.7}
+              >
+                <View style={[styles.iconCircle, { backgroundColor: `${item.color}20` }]}>
+                  <Ionicons name={item.icon} size={32} color={item.color} />
+                </View>
+                <Text style={styles.menuLabel}>{item.label}</Text>
+                <Ionicons name="chevron-forward" size={20} color="#666" />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -173,12 +189,71 @@ const styles = StyleSheet.create({
     color: '#fff', 
     fontWeight: '600',
   },
-  menuGrid: {
-    gap: 15,
-    marginBottom: 30,
+  sectionContainer: {
     width: '100%',
     maxWidth: 600,
     alignSelf: 'center',
+    marginBottom: 30,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+    gap: 10,
+  },
+  sectionTitle: {
+    color: '#f6e27f',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  statsSection: {
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+    marginBottom: 30,
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 12,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statCard: {
+    backgroundColor: '#2a292e',
+    padding: 20,
+    borderRadius: 15,
+    alignItems: 'center',
+    flex: 1,
+    minWidth: isLargeScreen ? 150 : 100,
+    borderWidth: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  statIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#aaa',
+    marginTop: 5,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  menuGrid: {
+    gap: 15,
   },
   menuCard: {
     backgroundColor: '#2a292e',
@@ -211,51 +286,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  statsSection: {
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#f6e27f',
-    marginBottom: 15,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    gap: 15,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  statCard: {
-    backgroundColor: '#2a292e',
-    padding: 20,
-    borderRadius: 15,
-    alignItems: 'center',
-    flex: 1,
-    minWidth: isLargeScreen ? 150 : 100,
-    borderWidth: 1,
-    borderColor: '#333',
-  },
-  statValue: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginTop: 10,
-  },
-  statLabel: {
-    fontSize: 12,
-    color: '#aaa',
-    marginTop: 5,
-  },
   logoutButton: { 
     backgroundColor: '#8B0000',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 12,
+    padding: 18,
+    borderRadius: 15,
     marginTop: 20,
-    gap: 8,
+    gap: 10,
     borderWidth: 1,
     borderColor: '#a00',
     shadowColor: '#8B0000',
@@ -269,7 +308,7 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#fff',
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

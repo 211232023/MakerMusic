@@ -1,10 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, TextInput, ScrollView, KeyboardAvoidingView, Platform, SafeAreaView, StatusBar } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { useUser } from '../src/UserContext';
 import { getMyStudents, createSchedule } from '../../services/api';
 import CustomPicker from '../../components/CustomPicker';
-import { useToast } from '../../contexts/ToastContext'; 
+import { useToast } from '../../contexts/ToastContext';
+import { Ionicons } from '@expo/vector-icons'; 
 
 type Student = {
   id: string;
@@ -118,165 +119,311 @@ export default function AddScheduleScreen() {
   ];
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1 }}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.container}>
-          <Text style={styles.title}>Criar Novo Horário</Text>
-
-          {isLoadingStudents ? (
-            <ActivityIndicator color="#d4af37" />
-          ) : (
-            <View style={styles.form}>
-              
-              <View style={styles.fieldSpacing}>
-                <Text style={styles.label}>1. Selecionar Aluno:</Text>
-                <CustomPicker
-                  selectedValue={selectedStudentId}
-                  onValueChange={setSelectedStudentId}
-                  items={studentItems}
-                />
-              </View>
-
-              {/* Informações Automáticas */}
-              <View style={styles.infoContainer}>
-                <View style={styles.infoField}>
-                  <Text style={styles.infoLabel}>Classe:</Text>
-                  <Text style={styles.infoValue}>
-                    {selectedStudent?.instrument_name || '---'}
-                  </Text>
-                </View>
-                <View style={styles.infoField}>
-                  <Text style={styles.infoLabel}>Turma:</Text>
-                  <Text style={styles.infoValue}>
-                    {selectedStudent?.class_description || '---'}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.fieldSpacing}>
-                <Text style={styles.label}>Descrição da Aula:</Text>
-                <TextInput
-                  style={[styles.input, styles.textArea]}
-                  placeholder="Ex: Aula prática"
-                  placeholderTextColor="#aaa"
-                  value={activity}
-                  onChangeText={setActivity}
-                  multiline
-                  numberOfLines={3}
-                />
-              </View>
-
-              <View style={styles.fieldSpacing}>
-                <Text style={styles.label}>Dia da Semana:</Text>
-                <CustomPicker
-                  selectedValue={selectedDay}
-                  onValueChange={setSelectedDay}
-                  items={DAYS_OF_WEEK}
-                />
-              </View>
-
-              <View style={[styles.row, styles.fieldSpacing]}>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Hora de Início:</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="HH:MM"
-                    placeholderTextColor="#aaa"
-                    value={startTime}
-                    onChangeText={setStartTime}
-                    maxLength={5}
-                    keyboardType="numbers-and-punctuation"
-                  />
-                </View>
-                <View style={styles.halfInput}>
-                  <Text style={styles.label}>Hora de Fim:</Text>
-                  <TextInput
-                    style={styles.input}
-                    placeholder="HH:MM"
-                    placeholderTextColor="#aaa"
-                    value={endTime}
-                    onChangeText={setEndTime}
-                    maxLength={5}
-                    keyboardType="numbers-and-punctuation"
-                  />
-                </View>
-              </View>
-            </View>
-          )}
-
-          {isLoading ? (
-            <ActivityIndicator size="large" color="#d4af37" style={{ marginTop: 20 }} />
-          ) : (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" backgroundColor="#1c1b1f" />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContainer}>
+          <View style={styles.container}>
             <TouchableOpacity 
-              style={[styles.button, !selectedStudentId && styles.buttonDisabled]} 
-              onPress={handleCreateSchedule}
-              disabled={!selectedStudentId}
+              style={styles.backButton} 
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>Salvar Horário</Text>
+              <Ionicons name="arrow-back" size={24} color="#f6e27f" />
+              <Text style={styles.backText}>Voltar</Text>
             </TouchableOpacity>
-          )}
 
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-            <Text style={styles.backButtonText}>Cancelar</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <View style={styles.header}>
+              <View style={styles.titleContainer}>
+                <Ionicons name="calendar" size={32} color="#f6e27f" />
+                <Text style={styles.title}>Criar Novo Horário</Text>
+              </View>
+              <Text style={styles.subtitle}>Defina o horário de aula para o aluno</Text>
+            </View>
+
+            {isLoadingStudents ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#f6e27f" />
+              </View>
+            ) : (
+              <View style={styles.formContainer}>
+                <View style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Ionicons name="person-outline" size={22} color="#64b5f6" />
+                    <Text style={styles.cardTitle}>Seleção de Aluno</Text>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <View style={styles.labelContainer}>
+                      <Ionicons name="people-outline" size={18} color="#f6e27f" />
+                      <Text style={styles.label}>Aluno</Text>
+                    </View>
+                    <CustomPicker
+                      selectedValue={selectedStudentId}
+                      onValueChange={setSelectedStudentId}
+                      items={studentItems}
+                    />
+                  </View>
+
+                  {selectedStudent && (
+                    <View style={styles.infoContainer}>
+                      <View style={styles.infoRow}>
+                        <Ionicons name="musical-note" size={18} color="#81c784" />
+                        <Text style={styles.infoLabel}>Instrumento:</Text>
+                        <Text style={styles.infoValue}>{selectedStudent.instrument_name}</Text>
+                      </View>
+                      <View style={styles.infoRow}>
+                        <Ionicons name="school" size={18} color="#ffb74d" />
+                        <Text style={styles.infoLabel}>Turma:</Text>
+                        <Text style={styles.infoValue}>{selectedStudent.class_description}</Text>
+                      </View>
+                    </View>
+                  )}
+                </View>
+
+                <View style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <Ionicons name="time-outline" size={22} color="#81c784" />
+                    <Text style={styles.cardTitle}>Detalhes da Aula</Text>
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <View style={styles.labelContainer}>
+                      <Ionicons name="document-text-outline" size={18} color="#f6e27f" />
+                      <Text style={styles.label}>Descrição da Aula</Text>
+                    </View>
+                    <TextInput
+                      style={[styles.input, styles.textArea]}
+                      placeholder="Ex: Aula prática de escalas"
+                      placeholderTextColor="#666"
+                      value={activity}
+                      onChangeText={setActivity}
+                      multiline
+                      numberOfLines={3}
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <View style={styles.labelContainer}>
+                      <Ionicons name="calendar-outline" size={18} color="#f6e27f" />
+                      <Text style={styles.label}>Dia da Semana</Text>
+                    </View>
+                    <CustomPicker
+                      selectedValue={selectedDay}
+                      onValueChange={setSelectedDay}
+                      items={DAYS_OF_WEEK}
+                    />
+                  </View>
+
+                  <View style={styles.timeRow}>
+                    <View style={styles.timeInputGroup}>
+                      <View style={styles.labelContainer}>
+                        <Ionicons name="play-outline" size={18} color="#f6e27f" />
+                        <Text style={styles.label}>Início</Text>
+                      </View>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="HH:MM"
+                        placeholderTextColor="#666"
+                        value={startTime}
+                        onChangeText={setStartTime}
+                        maxLength={5}
+                        keyboardType="numbers-and-punctuation"
+                      />
+                    </View>
+                    <View style={styles.timeInputGroup}>
+                      <View style={styles.labelContainer}>
+                        <Ionicons name="stop-outline" size={18} color="#f6e27f" />
+                        <Text style={styles.label}>Fim</Text>
+                      </View>
+                      <TextInput
+                        style={styles.input}
+                        placeholder="HH:MM"
+                        placeholderTextColor="#666"
+                        value={endTime}
+                        onChangeText={setEndTime}
+                        maxLength={5}
+                        keyboardType="numbers-and-punctuation"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {isLoading ? (
+                  <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color="#f6e27f" />
+                    <Text style={styles.loadingText}>Salvando horário...</Text>
+                  </View>
+                ) : (
+                  <>
+                    <TouchableOpacity 
+                      style={[styles.button, !selectedStudentId && styles.buttonDisabled]} 
+                      onPress={handleCreateSchedule}
+                      disabled={!selectedStudentId}
+                      activeOpacity={0.8}
+                    >
+                      <Ionicons name="checkmark-circle" size={24} color="#1c1b1f" />
+                      <Text style={styles.buttonText}>Salvar Horário</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity 
+                      style={styles.cancelButton} 
+                      onPress={() => navigation.goBack()}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={styles.cancelButtonText}>Cancelar</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#1c1b1f",
+  },
   scrollContainer: {
     flexGrow: 1,
-    backgroundColor: '#1c1b1f',
+    paddingBottom: 40,
   },
   container: { 
     flex: 1, 
     padding: 20, 
-    alignItems: 'center' 
+    width: '100%' 
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    marginBottom: 30,
+    gap: 8,
+    paddingVertical: 8,
+  },
+  backText: {
+    color: '#f6e27f',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 30,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
   },
   title: { 
     fontSize: 28, 
     fontWeight: 'bold', 
     color: '#f6e27f', 
-    marginBottom: 30, 
-    marginTop: 40, 
-    textAlign: 'center' 
+    textAlign: 'center',
+    letterSpacing: 0.5,
   },
-  form: {
+  subtitle: {
+    fontSize: 15,
+    color: '#aaa',
+    textAlign: 'center',
+  },
+  loadingContainer: {
+    marginVertical: 30,
+    alignItems: 'center',
+    gap: 15,
+  },
+  loadingText: {
+    color: '#aaa',
+    fontSize: 16,
+  },
+  formContainer: {
     width: '100%',
-    maxWidth: 400,
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  card: {
+    backgroundColor: '#2a292e',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#333',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    gap: 10,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#3a3a3e',
+  },
+  cardTitle: {
+    color: '#f6e27f',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  inputGroup: {
+    width: '100%',
+    marginBottom: 15,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
   },
   label: { 
-    fontSize: 16, 
+    fontSize: 14, 
     color: '#f6e27f', 
-    marginBottom: 10, 
-    alignSelf: 'flex-start', 
-    fontWeight: 'bold'
+    fontWeight: '600'
   },
-  fieldSpacing: {
-    marginTop: 20,
+  input: { 
+    width: '100%', 
+    backgroundColor: '#1c1b1f', 
+    color: '#fff', 
+    padding: 15, 
+    borderRadius: 12, 
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#444'
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top',
   },
   infoContainer: {
-    backgroundColor: '#2a292e',
+    backgroundColor: '#1c1b1f',
     padding: 15,
-    borderRadius: 10,
+    borderRadius: 12,
     marginTop: 10,
     borderWidth: 1,
     borderColor: '#444',
+    gap: 10,
   },
-  infoField: {
+  infoRow: {
     flexDirection: 'row',
-    marginBottom: 5,
+    alignItems: 'center',
+    gap: 8,
   },
   infoLabel: {
     color: '#aaa',
     fontSize: 14,
-    width: 60,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
   infoValue: {
     color: '#f6e27f',
@@ -284,52 +431,45 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     flex: 1,
   },
-  row: {
+  timeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    gap: 15,
   },
-  halfInput: {
-    width: '48%',
-  },
-  input: { 
-    width: '100%', 
-    backgroundColor: '#2a292e', 
-    color: '#fff', 
-    padding: 15, 
-    borderRadius: 10, 
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#333'
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
+  timeInputGroup: {
+    flex: 1,
   },
   button: { 
-    backgroundColor: '#d4af37', 
-    padding: 15, 
-    borderRadius: 10, 
+    backgroundColor: '#f6e27f', 
+    flexDirection: 'row',
+    padding: 18, 
+    borderRadius: 15, 
     width: '100%', 
-    maxWidth: 400,
     alignItems: 'center', 
-    marginTop: 40 
+    justifyContent: 'center',
+    marginTop: 10,
+    gap: 10,
+    shadowColor: '#f6e27f',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   buttonDisabled: {
     backgroundColor: '#555',
+    shadowColor: '#000',
   },
   buttonText: { 
     color: '#1c1b1f', 
     fontWeight: 'bold', 
     fontSize: 18 
   },
-  backButton: { 
-    marginTop: 30,
-    marginBottom: 40,
-    alignSelf: 'center' 
+  cancelButton: { 
+    marginTop: 20,
+    alignSelf: 'center',
+    paddingVertical: 12,
   },
-  backButtonText: { 
-    color: '#d4af37', 
+  cancelButtonText: { 
+    color: '#f6e27f', 
     fontSize: 16, 
     fontWeight: 'bold' 
   },
